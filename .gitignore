@@ -1,0 +1,16 @@
+# Python build and environment files
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Local analysis outputs
+figures/
+outputs/
+
+# OS files
+.DS_Store

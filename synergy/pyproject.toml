@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "emergence-synergy"
+version = "0.5.0"
+description = "Self-contained Phi_ID engine, statistical analysis, and publication figures"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Borjan Milinkovic" }]
+dependencies = ["numpy>=1.24", "scipy>=1.10"]
+
+[project.optional-dependencies]
+fast = ["numba>=0.60"]
+analysis = ["pandas>=2.0", "matplotlib>=3.8", "networkx>=3.0"]
+doc = ["pandas>=2.0", "matplotlib>=3.8", "networkx>=3.0", "nibabel>=5.0", "nilearn>=0.12", "fast-simplification>=0.1", "fonttools>=4.0"]
+
+[project.scripts]
+synergy-analysis = "synergy.analysis_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"synergy.resources" = ["*.csv"]
+
