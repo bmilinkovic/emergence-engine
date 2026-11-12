@@ -94,3 +94,16 @@ def test_all_four_model_order_choices_are_available():
         assert selected.order == candidates.select(criterion)
         assert selected.fit.coefficients.shape[2] == selected.order
     assert candidates.select("LRT") == candidates.lrt
+
+
+def test_mvgc_ols_fit_and_model_order_match_matlab():
+    fit = tsdata_to_var(F["Xols"], 2, regmode="OLS")
+    np.testing.assert_allclose(fit.coefficients, F["Aols"], atol=1e-12)
+    np.testing.assert_allclose(fit.covariance, F["Vols"], atol=1e-12)
+    np.testing.assert_allclose(fit.residuals, F["Eols"], atol=1e-12)
+    order = tsdata_to_varmo(F["Xols"], 4, regmode="OLS")
+    assert (order.aic, order.bic, order.hqc, order.lrt) == (
+        F["oaic"], F["obic"], F["ohqc"], F["olrt"])
+    for criterion in ("aic", "bic", "hqc"):
+        np.testing.assert_allclose(getattr(order, criterion+"_curve"),
+                                   F[criterion+"_ols"], atol=1e-12)

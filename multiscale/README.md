@@ -22,15 +22,23 @@ The wheel has no MATLAB dependency and does not contain study data.
 
 ## From time series to a VAR model
 
-For observations in `(nodes, time, trials)` order, choose the model order
-criterion explicitly: **AIC**, **BIC**, **HQC**, or the sequential likelihood
-ratio test (**LRT**). `fit_var_auto` uses MVGC2's original LWR fitting recursion and
-covariance convention, and returns all four candidate orders for inspection:
+For observations in `(nodes, time, trials)` order, make two separate choices:
+
+- **Model order criterion:** AIC, BIC, HQC, or the sequential likelihood ratio
+  test (LRT).
+- **Regression algorithm:** `"LWR"` or `"OLS"`. LWR is the
+  Levinson–Wiggins–Robinson multichannel autoregression, using Morf's
+  recursive implementation. It assumes a stable process and produces a stable
+  VAR estimate. OLS is ordinary least squares, solved with rank-revealing QR;
+  it can fit unstable processes. DMT used LWR for both order selection and
+  fitting.
+
+`fit_var_auto` returns the selected fit and all four candidate orders:
 
 ```python
 from multiscale import fit_var_auto
 
-selection = fit_var_auto(signals, pmax=13, criterion="bic")
+selection = fit_var_auto(signals, pmax=13, criterion="bic", regmode="OLS")
 print(selection.candidates)  # AIC, BIC, HQC, LRT recommendations
 A, V = selection.fit.coefficients, selection.fit.covariance
 ```

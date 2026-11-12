@@ -1,9 +1,9 @@
-"""MVGC2's LWR VAR fitting path for multitrial data."""
+"""MVGC2 VAR fitting paths and model order selection for multitrial data."""
 
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.linalg import cholesky, solve_triangular
+from scipy.linalg import cholesky, lstsq, solve_triangular
 from scipy.stats import f as f_distribution
 
 
@@ -45,12 +45,13 @@ def _demean(x):
 
 
 def tsdata_to_var(x, p, regmode="LWR"):
-    """Fit MVGC2's Morf LWR VAR model to (nodes,time,trials) observations.
+    """Fit MVGC2's Morf LWR or QR-based OLS VAR model.
 
-    The algorithm retains the original lag-stack layout, Cholesky solves,
-    recursion order, and residual covariance divisor from tsdata_to_var.m.
-    The latter uses the final loop variable M, which is one time point less
-    per trial than the residual count; this is kept for result parity.
+    Data have shape (nodes,time,trials). LWR retains the original lag-stack
+    layout, Cholesky solves, recursion order, and residual covariance divisor.
+    The latter uses the final loop variable M, one time point less per trial
+    than the residual count; this is kept for result parity. OLS uses the
+    original least-squares QR route and divides by N*(m-p)-1.
     """
     x = np.asarray(x, float)
     if x.ndim == 2:
@@ -58,15 +59,31 @@ def tsdata_to_var(x, p, regmode="LWR"):
     if x.ndim != 3:
         raise ValueError("data must have shape (nodes,time[,trials])")
     n, m, trials = x.shape
-    if not 0 <= p < m-1:
-        raise ValueError("require 0 <= p < time-1")
-    if regmode.upper() != "LWR":
-        raise ValueError("this package implements the MVGC2 LWR path")
+    if not 0 <= p < m:
+        raise ValueError("require 0 <= p < time")
+    mode = regmode.upper()
+    if mode not in ("LWR", "OLS"):
+        raise ValueError("regmode must be LWR or OLS")
+    if mode == "LWR" and p >= m-1:
+        raise ValueError("LWR requires p < time-1 to match MVGC2's covariance divisor")
     if p == 0:
         centered = _demean(x).reshape(n, m*trials, order="F")
         v = centered @ centered.T/(m*trials-1)
         return VARFit(np.zeros((n, n, 0)), v, x.copy())
     x = _demean(x)
+    if mode == "OLS":
+        obs = np.arange(p, m)
+        count = trials*(m-p)
+        current = x[:, obs, :].reshape(n, count, order="F")
+        lagged = np.empty((n*p, count))
+        for lag in range(p):
+            lagged[lag*n:(lag+1)*n] = x[:, obs-lag-1, :].reshape(n, count, order="F")
+        # MATLAB X0/XL: solve XL.T @ A.T = X0.T with rank-revealing QR.
+        flat = lstsq(lagged.T, current.T, lapack_driver="gelsy")[0].T
+        coefficients = np.stack([flat[:, lag*n:(lag+1)*n] for lag in range(p)], axis=2)
+        e = current-flat @ lagged
+        v = e @ e.T/(count-1)
+        return VARFit(coefficients, v, e.reshape(n, m-p, trials, order="F"))
     p1 = p+1
     p1n = p1*n
     xx = np.zeros((p1, n, m+p, trials))
@@ -118,10 +135,12 @@ def tsdata_to_varmo(x, pmax, regmode="LWR", alpha=0.01):
     if x.ndim == 2:
         x = x[:, :, None]
     n, m, trials = x.shape
-    if not 1 <= pmax < m-1:
-        raise ValueError("require 1 <= pmax < time-1")
-    if regmode.upper() != "LWR":
-        raise ValueError("this package implements the MVGC2 LWR path")
+    mode = regmode.upper()
+    if mode not in ("LWR", "OLS"):
+        raise ValueError("regmode must be LWR or OLS")
+    max_order = m-2 if mode == "LWR" else m-1
+    if not 1 <= pmax <= max_order:
+        raise ValueError("pmax is too large for the data and regression mode")
     likelihood = np.empty(pmax+1)
     parameters = np.arange(pmax+1)*n*n
     sizes = np.empty(pmax+1)
@@ -131,8 +150,9 @@ def tsdata_to_varmo(x, pmax, regmode="LWR", alpha=0.01):
     sizes[0] = m*trials
     for p in range(1, pmax+1):
         fit = tsdata_to_var(x, p, regmode)
-        # tsdata_to_varll.m updates k/M before evaluating order-p residuals.
-        size = trials*(m-p-1)
+        # LWR tsdata_to_varll.m advances k/M before evaluating order-p
+        # residuals; OLS uses the ordinary N*(m-p) effective sample size.
+        size = trials*(m-p-1 if mode == "LWR" else m-p)
         sizes[p] = size
         covariance_ml = fit.residuals.reshape(n, -1, order="F")
         covariance_ml = covariance_ml @ covariance_ml.T/size
@@ -154,7 +174,7 @@ def tsdata_to_varmo(x, pmax, regmode="LWR", alpha=0.01):
 
 
 def fit_var_auto(x, pmax, criterion="aic", *, regmode="LWR", alpha=0.01):
-    """Select one of the four MVGC2 orders and fit that LWR VAR model.
+    """Select one of the four MVGC2 orders and fit an LWR or OLS VAR model.
 
     Returns the selected order, fitted coefficients/covariance/residuals, and
     all four candidate orders for inspection. LRT may select order zero.
