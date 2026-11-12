@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from multiscale import run_time_changing_dd, minimum_dd_by_window
+from multiscale import run_grid_parallel, run_time_changing_dd, minimum_dd_by_window
 from multiscale.model import (iss2cak, prepare_var, ss2trfun, var_to_cak,
                               var_to_ss, var_to_trfun)
 
@@ -24,6 +24,19 @@ class CompanionCalculationTests(unittest.TestCase):
                                    rtol=1e-12, atol=1e-12)
         np.testing.assert_allclose(prepared[4], ss2trfun(ass, c, k, 16),
                                    rtol=1e-12, atol=1e-12)
+
+    def test_selected_grid_block_keeps_full_grid_seed(self):
+        a = np.zeros((3, 3, 1))
+        a[:, :, 0] = np.array([[.5, .1, 0], [0, .4, .1], [0, 0, .3]])
+        v = np.eye(3)
+        kwargs = dict(fs=64, fres=16, dimensions=(1,),
+                      bands={"low": (2, 8), "high": (10, 20)},
+                      runs=2, seed=17, workers=1, pre_iters=4, final_iters=4)
+        full = run_grid_parallel(a, v, **kwargs)
+        selected = run_grid_parallel(a, v, pairs=[(1, "high")], **kwargs)
+        np.testing.assert_allclose(selected[(1, "high")]["final"].values,
+                                   full[(1, "high")]["final"].values,
+                                   rtol=0, atol=0)
 
 
 class TimeChangingDDTests(unittest.TestCase):

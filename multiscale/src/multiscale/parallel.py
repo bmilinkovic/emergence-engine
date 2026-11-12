@@ -42,7 +42,7 @@ def _run_block(task):
 def run_grid_parallel(a, v, fs, fres, dimensions, bands, *, runs=100, seed=0,
                       initial_bases=None, workers=None, pre_iters=10000,
                       final_iters=10000, cluster_tol=1e-10, history=False,
-                      progress=None):
+                      progress=None, pairs=None):
     """Optimise every requested ``(dimension, band)`` block independently.
 
     Parameters
@@ -54,6 +54,9 @@ def run_grid_parallel(a, v, fs, fres, dimensions, bands, *, runs=100, seed=0,
         Supply fixed bases here when comparing optimisation runs.
     workers : processes; one runs serially. Defaults to at most eight CPUs.
     progress : optional callback ``(completed, total, dimension, band, result)``
+    pairs : optional iterable of ``(dimension, band_name)``
+        Run only these blocks. Seeds still follow the complete grid, so a
+        resumed subset has the same starts as a full uninterrupted grid.
 
     Returns a dictionary keyed by ``(dimension, band_name)``. The model
     transform and transfer function are prepared once, then supplied once per
@@ -75,9 +78,15 @@ def run_grid_parallel(a, v, fs, fres, dimensions, bands, *, runs=100, seed=0,
     _, _, _, cak, h, freqs = prepare_var(a, v, fs, fres)
     combinations = [(m, name, bounds) for m in dimensions
                     for name, bounds in bands.items()]
+    wanted = None if pairs is None else set(pairs)
+    valid = {(m, name) for m, name, _ in combinations}
+    if wanted is not None and (not wanted or not wanted <= valid):
+        raise ValueError("pairs must be a non-empty subset of the dimension-band grid")
     seeds = np.random.SeedSequence(seed).spawn(len(combinations))
     tasks = []
     for (m, name, bounds), child_seed in zip(combinations, seeds):
+        if wanted is not None and (m, name) not in wanted:
+            continue
         low, high = bounds
         starts = None if initial_bases is None else np.asarray(initial_bases[(m, name)])
         if starts is not None and (starts.ndim != 3 or starts.shape[:2] != (n, m)):
