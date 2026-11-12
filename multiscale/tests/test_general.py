@@ -5,6 +5,25 @@ import unittest
 import numpy as np
 
 from multiscale import run_time_changing_dd, minimum_dd_by_window
+from multiscale.model import (iss2cak, prepare_var, ss2trfun, var_to_cak,
+                              var_to_ss, var_to_trfun)
+
+
+class CompanionCalculationTests(unittest.TestCase):
+    def test_block_elimination_matches_dense_companion(self):
+        rng = np.random.default_rng(91)
+        a = rng.normal(scale=0.025, size=(4, 4, 3))
+        ass, c, k = var_to_ss(a)
+        np.testing.assert_allclose(var_to_cak(a), iss2cak(ass, c, k),
+                                   rtol=1e-12, atol=1e-12)
+        np.testing.assert_allclose(var_to_trfun(a, 16),
+                                   ss2trfun(ass, c, k, 16),
+                                   rtol=1e-12, atol=1e-12)
+        prepared = prepare_var(a, np.eye(4), 128, 16)
+        np.testing.assert_allclose(prepared[3], iss2cak(ass, c, k),
+                                   rtol=1e-12, atol=1e-12)
+        np.testing.assert_allclose(prepared[4], ss2trfun(ass, c, k, 16),
+                                   rtol=1e-12, atol=1e-12)
 
 
 class TimeChangingDDTests(unittest.TestCase):
