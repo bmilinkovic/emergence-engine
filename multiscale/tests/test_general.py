@@ -4,7 +4,8 @@ import unittest
 
 import numpy as np
 
-from multiscale import run_grid_parallel, run_time_changing_dd, minimum_dd_by_window
+from multiscale import (fit_var_auto, run_grid_parallel, run_time_changing_dd,
+                        minimum_dd_by_window)
 from multiscale.model import (iss2cak, prepare_var, ss2trfun, var_to_cak,
                               var_to_ss, var_to_trfun)
 
@@ -37,6 +38,39 @@ class CompanionCalculationTests(unittest.TestCase):
         np.testing.assert_allclose(selected[(1, "high")]["final"].values,
                                    full[(1, "high")]["final"].values,
                                    rtol=0, atol=0)
+
+
+class VARFittingTests(unittest.TestCase):
+    def test_lwr_order_selection_matches_original_mvgc2_path(self):
+        """The one-pass recursion retains the previous full-fit result."""
+        rng = np.random.default_rng(447)
+        signals = np.zeros((3, 64, 20))
+        lag1 = np.array([[.55, .08, 0], [0, .4, .06], [.02, 0, .35]])
+        lag2 = np.diag([-.25, -.18, -.15])
+        for trial in range(20):
+            noise = rng.normal(size=(3, 64))
+            for t in range(2, 64):
+                signals[:, t, trial] = (lag1 @ signals[:, t-1, trial]
+                                        + lag2 @ signals[:, t-2, trial]
+                                        + noise[:, t])
+        fitted = fit_var_auto(signals, 8, "LRT", regmode="LWR")
+        self.assertEqual((fitted.candidates.aic, fitted.candidates.bic,
+                          fitted.candidates.hqc, fitted.candidates.lrt,
+                          fitted.order), (3, 2, 2, 2, 2))
+        np.testing.assert_allclose(
+            fitted.candidates.aic_curve,
+            [.402598021945524, .086172114064684, .020101145333048,
+             .016825353044967, .036378255756153, .047084515948232,
+             .057520720936044, .079569747764501, .10639960813812],
+            rtol=1e-10, atol=1e-10)
+        np.testing.assert_allclose(
+            np.diagonal(fitted.fit.coefficients[:, :, 0]),
+            [.526042361091091, .40906282012022, .330394968320006],
+            rtol=1e-10, atol=1e-10)
+        np.testing.assert_allclose(
+            np.diagonal(fitted.fit.covariance),
+            [.976948093441644, .94707896862288, 1.075452195383623],
+            rtol=1e-10, atol=1e-10)
 
 
 class TimeChangingDDTests(unittest.TestCase):
