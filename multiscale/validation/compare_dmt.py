@@ -35,13 +35,13 @@ def compare_file(path, model_root, temporal=False, first_run=False,
         idx = np.flatnonzero((freqs >= band["lo"]) & (freqs <= band["hi"]))
         if not len(idx):
             continue
-        for m in range(2, a.shape[0]):
+        for m in range(1, a.shape[0]):
             key = f"{name}_Lopto_m{m}"
             if key not in saved:
                 continue
             bases = np.asarray(saved[key])
             if bases.ndim == 2:
-                bases = bases[:, :, None]
+                bases = bases[:, None, :] if m == 1 else bases[:, :, None]
             reference = np.atleast_1d(saved[f"{name}_canonical_band_dd_m{m}"])
             for run in range(1 if first_run else bases.shape[2]):
                 l = orthonormalise(root.T @ bases[:, :, run])

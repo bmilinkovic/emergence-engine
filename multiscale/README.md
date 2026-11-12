@@ -43,7 +43,7 @@ print(selection.candidates)  # AIC, BIC, HQC, LRT recommendations
 A, V = selection.fit.coefficients, selection.fit.covariance
 ```
 
-Use a domain-appropriate order criterion; DMT used AIC. Order zero means a
+Use a domain-appropriate order criterion; the DK5 DMT reference used LRT. Order zero means a
 white-noise model and has no directed dynamics to optimize.
 
 ## Use with an already fitted VAR model
@@ -61,6 +61,36 @@ result = run_two_stage(A, V, fs=128, fres=128, m=2, bands=bands,
                        initial_bases=starts)
 print(result["low"]["final"].values[0])
 ```
+
+For a full search across an arbitrary atlas, use independent processes for
+each requested dimension and band. The only dimension limit is mathematical:
+`1 <= m < n_regions`. A 68-region atlas can use the same API, though its VAR
+model and optimization grid will require much more compute and memory.
+
+```python
+from multiscale import run_grid_parallel
+
+results = run_grid_parallel(
+    A, V, fs=256, fres=256,
+    dimensions=range(1, A.shape[0]),
+    bands={"delta": (1, 4), "theta": (5, 8)},
+    runs=100, workers=8, seed=42,
+    progress=lambda done, total, m, band, result:
+        print(f"{done}/{total}: m={m} {band}", flush=True),
+)
+```
+
+The model transfer function is prepared once and shared with worker
+processes. Each block has a deterministic seed across worker counts. Set
+`workers` to fit the machine's memory; a large atlas and high model order
+increase the memory needed by each worker.
+
+For example, searching dimensions 1–67 in a 68-region atlas uses the same
+call. Plan the grid first: its number of optimization blocks is the number
+of dimensions times the number of bands, and each block runs the requested
+restarts. The VAR state dimension also grows as regions times model order,
+so model preparation and each worker's memory can become substantial. Start
+with a small band and dimension subset to estimate the larger run's cost.
 
 `pre` contains the sorted proxy optimization results. Representatives are
 selected by SSDI-1's greedy Grassmann clustering in that sorted order.
@@ -86,11 +116,20 @@ into fMRI merely to make numbers look comparable.
 
 ## DMT parity
 
-`validation/compare_dmt.py` compares all saved canonical band values against
-the archived MATLAB `.mat` files, per condition, subject, band, dimension,
-and restart. It reads each result's **saved `fs` and `fres` metadata**. This
-matters: the archived run used 128/128, while a later configuration file says
-256/256. Supply the result directory and the matching model directory:
+Two archived analyses use different sampling grids. The earlier DK68 audit
+in `validation/compare_dmt.py` reads each file's saved `fs` and `fres` metadata
+and compares saved canonical values; that archive used 128/128. The DK5
+momax30 reference uses 256/256, LRT model selection, and dimensions 1–4.
+`validation/run_dmt_full.py` reproduces the DK5 analysis from the archived raw
+source-reconstructed arrays. It fits the VAR, checks that model against the
+archived MATLAB fit, then runs 100 matched starts per dimension and band with
+the full 10,000 iteration limits. Work is split across processes and every
+block is checkpointed; `progress.log` and `status.json` show progress. The
+MATLAB-generated starts are for trajectory validation only. New analyses can
+use `run_grid_parallel` and its seeded Python starts without MATLAB.
+
+For the earlier archive comparison, supply the saved result and matching model
+directories:
 
 ```bash
 python multiscale/validation/compare_dmt.py RESULTS_ROOT MODEL_ROOT \
@@ -101,6 +140,8 @@ python multiscale/validation/compare_dmt.py RESULTS_ROOT MODEL_ROOT \
 temporal DI value per band and dimension. No DMT data is included here.
 The aggregate errors are in [the public parity summary](validation/PARITY_SUMMARY.md).
 The read-only script can generate a detailed local CSV for per-subject review.
+`validation/compare_dmt_full.py` compares each completed DK5 optimization
+checkpoint with its MATLAB output, including best values and restart counts.
 
 ## Scope and provenance
 

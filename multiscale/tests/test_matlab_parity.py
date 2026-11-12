@@ -8,7 +8,8 @@ from scipy.io import loadmat
 from multiscale import (canonical_band_objective_and_grad, canonical_band_value,
                         canonical_opt_dds_mruns, iss2dd, opt_gd_ddx_mruns, prepare_var,
                         trfun2dd, trfun2ddgrad, opt_gd_dds_mruns,
-                        tsdata_to_var, tsdata_to_varmo, fit_var_auto)
+                        tsdata_to_var, tsdata_to_varmo, fit_var_auto,
+                        run_grid_parallel)
 from multiscale.model import orthonormalise
 
 
@@ -107,3 +108,16 @@ def test_mvgc_ols_fit_and_model_order_match_matlab():
     for criterion in ("aic", "bic", "hqc"):
         np.testing.assert_allclose(getattr(order, criterion+"_curve"),
                                    F[criterion+"_ols"], atol=1e-12)
+
+
+def test_parallel_grid_matches_serial_for_arbitrary_dimensions():
+    kwargs = dict(a=F["VARA"], v=F["V"], fs=int(F["fs"]), fres=int(F["fres"]),
+                  dimensions=(1, 2), bands={"low": (1, 4)}, runs=2, seed=7,
+                  pre_iters=5, final_iters=5)
+    serial = run_grid_parallel(**kwargs, workers=1)
+    parallel = run_grid_parallel(**kwargs, workers=2)
+    for key in serial:
+        np.testing.assert_allclose(serial[key]["pre"].values,
+                                   parallel[key]["pre"].values, atol=1e-12)
+        np.testing.assert_allclose(serial[key]["final"].values,
+                                   parallel[key]["final"].values, atol=1e-12)
