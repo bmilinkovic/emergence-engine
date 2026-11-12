@@ -19,6 +19,13 @@ def _bands(values):
         band for band in observed if band not in GREEK]
 
 
+def _conditions(table, conditions):
+    selected = tuple(conditions) if conditions is not None else tuple(dict.fromkeys(table.condition))
+    if len(selected) != 2:
+        raise ValueError("choose exactly two conditions to compare")
+    return selected
+
+
 def _save(fig, stem):
     stem = Path(stem)
     stem.parent.mkdir(parents=True, exist_ok=True)
@@ -51,9 +58,10 @@ def _violin(ax, datasets, positions, colors, *, width=.3):
                 color=color, lw=2)
 
 
-def plot_dd_violin_by_macro(dd, stats, output, *, conditions=("rest", "dmt"),
+def plot_dd_violin_by_macro(dd, stats, output, *, conditions=None,
                             labels=None, colors=DEFAULT_COLORS):
-    """Archived-style condition violins, one panel per macro dimension."""
+    """Condition distributions with one panel per macro dimension."""
+    conditions = _conditions(dd, conditions)
     bands = _bands(dd.band)
     mvals = sorted(dd.m.unique())
     ncols = 2 if len(mvals) <= 4 else 3
@@ -88,9 +96,10 @@ def plot_dd_violin_by_macro(dd, stats, output, *, conditions=("rest", "dmt"),
 
 
 def plot_dd_grand_average(dd, grand_stats, output, *,
-                          conditions=("rest", "dmt"), labels=None,
+                          conditions=None, labels=None,
                           colors=DEFAULT_COLORS):
-    """Archived pooled-across-macro violin comparison by frequency band."""
+    """Compare condition distributions pooled over macro dimensions."""
+    conditions = _conditions(dd, conditions)
     bands = _bands(dd.band)
     fig, ax = plt.subplots(figsize=(15, 6.4))
     for bi, band in enumerate(bands):
@@ -114,9 +123,10 @@ def plot_dd_grand_average(dd, grand_stats, output, *,
     return _save(fig, output)
 
 
-def plot_sf_index(sf, stats, output, *, conditions=("rest", "dmt"),
+def plot_sf_index(sf, stats, output, *, conditions=None,
                   labels=None, colors=DEFAULT_COLORS):
     """SF index by macro dimension and band, with subject trajectories."""
+    conditions = _conditions(sf, conditions)
     bands = _bands(sf.band)
     mvals = sorted(sf.m.unique())
     fig, axes = plt.subplots(1, len(bands), figsize=(5.4*len(bands), 6),
@@ -155,9 +165,10 @@ def plot_sf_index(sf, stats, output, *, conditions=("rest", "dmt"),
     return _save(fig, output)
 
 
-def plot_similarity_matrices(matrices, output, *, conditions=("dmt", "rest"),
+def plot_similarity_matrices(matrices, output, *, conditions=None,
                              bands=None, dimensions=None, top_k=40):
-    """Archived-style subject-averaged top-40 similarity matrix grid."""
+    """Show mean run-distance matrices for each condition, band, and dimension."""
+    conditions = tuple(conditions) if conditions is not None else tuple(dict.fromkeys(k[0] for k in matrices))
     bands = bands or _bands(k[1] for k in matrices)
     dimensions = dimensions or sorted({k[2] for k in matrices})
     nrows, ncols = len(dimensions), len(bands)*len(conditions)
@@ -187,11 +198,11 @@ def plot_similarity_matrices(matrices, output, *, conditions=("dmt", "rest"),
     return _save(fig, output)
 
 
-def plot_timewindow_dd(dd, output, *, rest="rest", rest_label=None, windows=None,
+def plot_timewindow_dd(dd, output, *, baseline, baseline_label=None, windows=None,
                        colors=DEFAULT_COLORS):
     """Four-window by five-band DD comparison, using paired subject rows."""
     windows = windows or list(dict.fromkeys(dd.window))
-    rest_label = rest_label or str(rest).title()
+    baseline_label = baseline_label or str(baseline).title()
     bands = _bands(dd.band)
     fig, axes = plt.subplots(len(windows), len(bands),
                              figsize=(4.4*len(bands), 3.9*len(windows)),
@@ -200,11 +211,11 @@ def plot_timewindow_dd(dd, output, *, rest="rest", rest_label=None, windows=None
         for ci, band in enumerate(bands):
             ax = axes[ri, ci]
             sub = dd[(dd.window == window) & (dd.band == band)]
-            av = sub[sub.condition == rest].groupby("subject").dd_min.mean()
-            bv = sub[sub.condition != rest].groupby("subject").dd_min.mean()
+            av = sub[sub.condition == baseline].groupby("subject").dd_min.mean()
+            bv = sub[sub.condition != baseline].groupby("subject").dd_min.mean()
             pair = av.to_frame("a").join(bv.to_frame("b"), how="inner")
             _violin(ax, [pair.a, pair.b], [-.2, .2], colors, width=.34)
-            ax.set_xticks([-.2, .2], [rest_label, window], rotation=25)
+            ax.set_xticks([-.2, .2], [baseline_label, window], rotation=25)
             ax.grid(axis="y", alpha=.2)
             if ri == 0:
                 ax.set_title(GREEK.get(band, band), fontsize=18)
@@ -214,7 +225,7 @@ def plot_timewindow_dd(dd, output, *, rest="rest", rest_label=None, windows=None
     return _save(fig, output)
 
 
-def plot_timewindow_sf(sf, output, *, rest="rest", windows=None):
+def plot_timewindow_sf(sf, output, *, baseline, windows=None):
     """Four-window by five-band SF trajectories across macro dimensions."""
     windows = windows or list(dict.fromkeys(sf.window))
     bands = _bands(sf.band)
@@ -225,7 +236,7 @@ def plot_timewindow_sf(sf, output, *, rest="rest", windows=None):
         for ci, band in enumerate(bands):
             ax = axes[ri, ci]
             sub = sf[(sf.window == window) & (sf.band == band)]
-            for cond, color in zip((rest, next(c for c in sub.condition.unique() if c != rest)),
+            for cond, color in zip((baseline, next(c for c in sub.condition.unique() if c != baseline)),
                                    DEFAULT_COLORS):
                 means = sub[sub.condition == cond].groupby("m").sf_index.mean()
                 ax.plot(means.index, means.to_numpy(), "-o", color=color, lw=2)
@@ -302,4 +313,35 @@ def plot_pairwise_heatmap(grand_stats, states, output, *, ylabel=None):
         axes[0, 0].set_ylabel(ylabel)
     fig.colorbar(im, ax=axes, shrink=.55, label="Mean difference (column − row)")
     fig.subplots_adjust(left=.06, right=.92, bottom=.20, top=.87, wspace=.14)
+    return _save(fig, output)
+
+
+def plot_time_changing_dd(window_table, output, *, ylabel="Minimum DD"):
+    """Show how best DD changes across named windows for each dimension.
+
+    Pass the table from ``analysis.summarize_window_results``. Each band gets
+    its own panel; temporal DD, which has no band, gets one panel. Windows
+    appear in table order. This is descriptive: each point comes from a
+    separately fitted model and optimization.
+    """
+    frame = window_table.copy()
+    if frame.empty:
+        raise ValueError("window_table is empty")
+    frame["band"] = frame.band.fillna("Temporal")
+    windows = list(dict.fromkeys(frame.window))
+    bands = _bands(frame.band)
+    fig, axes = plt.subplots(1, len(bands), figsize=(5.3*len(bands), 5),
+                             squeeze=False, sharey=True)
+    for ax, band in zip(axes.flat, bands):
+        sub = frame[frame.band == band]
+        for m, group in sub.groupby("dimension"):
+            lookup = group.set_index("window").dd_min
+            y = [lookup.get(window, np.nan) for window in windows]
+            ax.plot(range(len(windows)), y, "-o", label=f"m={m}")
+        ax.set_title(GREEK.get(band, band))
+        ax.set_xticks(range(len(windows)), windows, rotation=30, ha="right")
+        ax.grid(axis="y", alpha=.2)
+    axes[0, 0].set_ylabel(ylabel)
+    axes[0, -1].legend(title="Macro dimension", frameon=False)
+    fig.tight_layout()
     return _save(fig, output)

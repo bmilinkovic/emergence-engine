@@ -1,14 +1,16 @@
-# Attribution
+# Copyright and source attribution
 
-This package adapts mathematical routines from:
+Copyright (c) 2026 Borjan Milinkovic for the Python implementation, package
+structure, documentation, and original additions in this repository.
 
-- Lionel Barnett's **MVGC2** toolbox (GPL v3), including the extended-pencil
-  QZ construction for `mdare`, `var_to_ss`, `ss2trfun`, and `sfreqs`.
-- Lionel Barnett's **SSDI-1** toolbox (MIT), including the CAK proxy,
-  Grassmann optimization, and clustering procedure.
-- The DMT project's canonical band objective and optimizer.
-- Andrew Knyazev and Rico Argentati's `subspacea` small-angle method (BSD),
-  used in the clustering distance.
+Core mathematical routines were translated and adapted from Lionel Barnett's
+SSDI and MVGC2 MATLAB toolboxes. In particular, the implementation follows
+their VAR fitting, state-space conversion, Riccati solver, proxy optimization,
+spectral integration, and subspace-clustering methods. The Grassmann-distance
+calculation also follows the Knyazev–Argentati small-angle method.
 
-See the source MATLAB files and license notices in their original toolboxes.
-The packaged Python code is GPL-3.0-only because of the MVGC2-derived path.
+These source contributions retain their own authorship and license notices.
+SSDI is MIT licensed and MVGC2 is GPL version 3. Because this package adapts
+GPL-covered routines, the multiscale package as a whole is distributed under
+GPL-3.0-only. The full terms are in `LICENSE`. This attribution does not
+impose a citation requirement on users of the package.

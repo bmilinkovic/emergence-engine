@@ -9,6 +9,7 @@ from .fit import tsdata_to_var, tsdata_to_varmo, fit_var_auto, VARFit, VARModelO
 from .parallel import run_grid_parallel
 from .temporal import es_parms, opt_es_dd, opt_es_dd_mruns
 from .pipeline import run_full_dd
+from .time_changing import run_time_changing_dd, minimum_dd_by_window, WindowResult
 
 __all__ = ["prepare_var", "sfreqs", "ss2trfun", "canonical_band_objective_and_grad",
            "canonical_band_value",
@@ -17,4 +18,5 @@ __all__ = ["prepare_var", "sfreqs", "ss2trfun", "canonical_band_objective_and_gr
            "trfun2dd", "trfun2ddgrad", "opt_gd_dds_mruns",
            "tsdata_to_var", "tsdata_to_varmo", "fit_var_auto", "VARFit",
            "VARModelOrder", "SelectedVAR", "run_grid_parallel",
-           "es_parms", "opt_es_dd", "opt_es_dd_mruns", "run_full_dd"]
+           "es_parms", "opt_es_dd", "opt_es_dd_mruns", "run_full_dd",
+           "run_time_changing_dd", "minimum_dd_by_window", "WindowResult"]

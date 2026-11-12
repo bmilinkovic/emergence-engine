@@ -51,7 +51,7 @@ def run_grid_parallel(a, v, fs, fres, dimensions, bands, *, runs=100, seed=0,
     dimensions : iterable of integers in ``1..n-1``
     bands : mapping of name to inclusive ``(low_hz, high_hz)`` bounds
     initial_bases : optional mapping ``(dimension, band_name) -> (n,m,runs)``
-        Supply original MATLAB bases here for restart-level comparisons.
+        Supply fixed bases here when comparing optimization runs.
     workers : processes; one runs serially. Defaults to at most eight CPUs.
     progress : optional callback ``(completed, total, dimension, band, result)``
 

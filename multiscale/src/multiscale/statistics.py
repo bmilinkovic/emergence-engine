@@ -19,7 +19,7 @@ def bh_fdr(pvalues, alpha=0.05):
 
 
 def sign_balance(delta):
-    """Archived effect convention: fraction positive minus fraction negative."""
+    """Fraction of positive changes minus fraction of negative changes."""
     d = np.asarray(delta, float)
     d = d[np.isfinite(d) & (d != 0)]
     return float(np.sign(d).mean()) if d.size else np.nan
@@ -27,7 +27,7 @@ def sign_balance(delta):
 
 def paired_tests(table, value, condition_a, condition_b, groups,
                  correction_groups, alpha=0.05):
-    """Paired two-sided Wilcoxon with the archived approximate-p convention.
+    """Paired two-sided Wilcoxon test using an approximate p value.
 
     ``condition_b - condition_a`` defines every reported effect. BH is
     applied separately within ``correction_groups``. One row per subject,
@@ -120,7 +120,11 @@ def sf_index(distance_matrix, threshold=1e-4):
 
 
 def pooled_sf_stats(sf_table, condition_a, condition_b):
-    """Archived pair-count-weighted two-proportion z test (descriptive)."""
+    """Compare pooled near-zero run-pair proportions with a z test.
+
+    Run pairs from one subject are dependent, so this is descriptive. Use a
+    subject-level paired test for the main group inference.
+    """
     rows = []
     for (band, m), sub in sf_table.groupby(["band", "m"], sort=False):
         counts = {}

@@ -1,4 +1,4 @@
-"""SSDI-1 proxy and DMT canonical spectral DD objectives."""
+"""Fast proxy and band-limited spectral DD objectives."""
 
 import numpy as np
 from scipy.linalg import cholesky, solve_triangular
@@ -39,7 +39,7 @@ def _weights(freqs):
 
 
 def canonical_band_objective_and_grad(l, h, freqs, band_idx):
-    """DMT Eq. 25/26 objective with its analytic Grassmann gradient.
+    """Band-limited DD objective and its analytic Grassmann gradient.
 
     Follows canonical_band_objective_and_grad.m: Cholesky of C, congruence
     transform, Hermitian eigenvalues, Cholesky inverse of A, and B solve.

@@ -1,4 +1,4 @@
-"""Two-stage SSDI optimisation used in the DMT canonical analysis."""
+"""Find low-dimensional subspaces with low dynamical dependence."""
 
 from dataclasses import dataclass
 import numpy as np
@@ -71,7 +71,7 @@ def _pre_single(cak, initial, niters, gdes, sig0, gdls, tol, history):
 
 
 def _final_single(h, freqs, idx, initial, niters, sig0, gdls, tol, history):
-    """Direct DMT canonical_opt_single accept-only trajectory."""
+    """Optimize band-limited DD, accepting only steps that improve it."""
     increase, decrease = _factors(gdls)
     stol, dtol, gtol = _tolerances(tol)
     l = orthonormalise(initial)
@@ -182,11 +182,10 @@ def cluster_representatives(bases, tolerance=1e-10):
 def run_two_stage(a, v, fs, fres, m, bands, *, initial_bases,
                   pre_iters=10000, final_iters=10000, cluster_tol=1e-10,
                   history=False):
-    """DMT preoptimization, clustering, and canonical band refinement.
+    """Optimize a fast proxy, keep distinct solutions, then refine band DD.
 
     ``initial_bases`` is an (n,m,runs) array or a mapping from band name to
-    such arrays. Supply MATLAB-generated bases for trajectory-level parity;
-    Python and MATLAB RNG streams differ.
+    such arrays. Use the same starting bases to compare optimization runs.
     ``bands`` maps names to inclusive (low_hz, high_hz) tuples.
     """
     _, _, _, cak, h, freqs = prepare_var(a, v, fs, fres)
@@ -201,7 +200,7 @@ def run_two_stage(a, v, fs, fres, m, bands, *, initial_bases,
         if starts.shape[0] != a.shape[0] or starts.shape[1] != m:
             raise ValueError("initial basis dimensions must be (n,m,runs)")
         pre = opt_gd_ddx_mruns(cak, starts, niters=pre_iters, history=history)
-        # DMT clusters in the original correlated coordinates.
+        # Cluster after mapping bases back to the original signal coordinates.
         untransformed_pre = itransform_subspace(pre.bases, v)
         reps, sizes = cluster_representatives(untransformed_pre, cluster_tol)
         final = canonical_opt_dds_mruns(h, freqs, idx, pre.bases[:, :, reps],

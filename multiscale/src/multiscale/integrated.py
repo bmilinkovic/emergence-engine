@@ -1,7 +1,8 @@
 """Original SSDI-1 frequency-integrated temporal DI optimization.
 
 This is the ``trfun2dd`` / ``trfun2ddgrad`` route used by older SSDI analyses.
-It is separate from the DMT canonical band objective in ``objective.py``.
+This full-spectrum objective differs from the band-limited objective in
+``objective.py``.
 """
 
 import numpy as np

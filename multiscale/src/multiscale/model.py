@@ -1,4 +1,4 @@
-"""The MVGC2/SSDI-1 VAR-to-innovations path used by DMT.
+"""Convert a fitted VAR model to the innovations form used for DD.
 
 Array convention is (output, input, lag), as in MATLAB. All transforms use
 the original Cholesky and SVD constructions, not covariance whitening by an
