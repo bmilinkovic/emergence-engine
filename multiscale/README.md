@@ -28,6 +28,25 @@ Pass signals as `(nodes, samples, trials)`. A single trial can be a two-dimensio
 stationarity, and the meaning of a sample. Keep preprocessing and node order
 consistent across subjects and conditions.
 
+### fMRI: use particular caution
+
+**For now, treat DI/DD computed from fMRI BOLD recordings as exploratory, and
+do not interpret it as a direct estimate of neural-level dynamical
+independence.** The BOLD signal samples neural activity indirectly and much
+more slowly than many neural interactions. Severe downsampling can change
+which predictive relationships are detectable or even produce misleading
+Granger-causality results. The haemodynamic response can also affect those
+results: invariance to its filtering depends on a *minimum-phase* condition.
+Recent modelling finds that many plausible response functions satisfy this
+condition, but some parameter choices, including ones producing an initial
+dip, do not. Even a minimum-phase response does not remove the sampling
+problem. These papers study Granger causality rather than this package's DI
+estimator directly; the warning for DI follows from its use of predictive
+dependence. The package does not test the response function or correct for
+these measurement effects. See [Seth, Chorley & Barnett (2013)](https://doi.org/10.1016/j.neuroimage.2012.09.049),
+[Barnett & Seth (2017)](https://doi.org/10.1016/j.jneumeth.2016.10.016), and
+[Novelli, Barnett, Seth & Razi (2025)](https://doi.org/10.1002/hbm.70285).
+
 ```python
 from multiscale import fit_var_auto
 
@@ -159,5 +178,20 @@ multiple-testing correction before interpreting adjusted p values.
 
 Copyright (c) 2026 Borjan Milinkovic. Multiscale is distributed under
 [GPL-3.0-only](LICENSE). Core routines were translated and adapted from
-Lionel Barnett's SSDI and MVGC2 toolboxes; see [NOTICE.md](NOTICE.md) for
-attribution. The separate Synergy package has its own MIT license.
+Lionel Barnett's [SSDI](https://github.com/lcbarnett/ssdi) and
+[MVGC2](https://github.com/lcbarnett/MVGC2) toolboxes; see
+[NOTICE.md](NOTICE.md) for attribution. The separate Synergy package has its
+own MIT license.
+
+## Source papers
+
+- Barnett, L., & Seth, A. K. (2023). “Dynamical independence: Discovering
+  emergent macroscopic processes in complex dynamical systems.” *Physical
+  Review E, 108*, 014304. [doi:10.1103/PhysRevE.108.014304](https://doi.org/10.1103/PhysRevE.108.014304).
+  The paper underlying the SSDI approach.
+- Barnett, L., & Seth, A. K. (2014). “The MVGC multivariate Granger causality
+  toolbox: A new approach to Granger-causal inference.” *Journal of
+  Neuroscience Methods, 223*, 50–68.
+  [doi:10.1016/j.jneumeth.2013.10.018](https://doi.org/10.1016/j.jneumeth.2013.10.018).
+  This describes the MVGC toolbox lineage from which MVGC2 develops; it is
+  not a separate publication of the MVGC2 repository.

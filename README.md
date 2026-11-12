@@ -27,6 +27,18 @@ optimization, and recording-window analysis. Its
 [quickstart notebook](multiscale/notebooks/quickstart.ipynb) uses synthetic
 signals. MATLAB is not required.
 
+**fMRI caution:** The Multiscale DI/DD workflow is currently best treated as
+exploratory on BOLD recordings. Slow sampling and assumptions about the
+haemodynamic response can distort predictive relationships; see the
+[fMRI guidance and references](multiscale/README.md#fmri-use-particular-caution)
+before interpreting a result as neural-level DI.
+
+Multiscale builds on Barnett and Seth's
+[SSDI toolbox](https://github.com/lcbarnett/ssdi) and
+[dynamical independence paper](https://doi.org/10.1103/PhysRevE.108.014304),
+plus the [MVGC2 toolbox](https://github.com/lcbarnett/MVGC2) and the
+[MVGC toolbox paper](https://doi.org/10.1016/j.jneumeth.2013.10.018).
+
 ### A small working example
 
 ```python
