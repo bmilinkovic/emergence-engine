@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-DEFAULT_COLORS = ("#2EC4B6", "#5E60CE")
+DEFAULT_COLOURS = ("#2EC4B6", "#5E60CE")
+DEFAULT_COLORS = DEFAULT_COLOURS  # Backward compatible public name.
 GREEK = {"delta": "δ", "theta": "θ", "alpha": "α",
          "beta": "β", "gamma": "γ"}
 
@@ -41,26 +42,28 @@ def _stars(q):
     return "***" if q < .001 else "**" if q < .01 else "*"
 
 
-def _violin(ax, datasets, positions, colors, *, width=.3):
-    for values, pos, color in zip(datasets, positions, colors):
+def _violin(ax, datasets, positions, colours, *, width=.3):
+    for values, pos, colour in zip(datasets, positions, colours):
         v = np.asarray(values, float)
         v = v[np.isfinite(v)]
         if not len(v):
             continue
         art = ax.violinplot([v], [pos], widths=width, showextrema=False)
         for body in art["bodies"]:
-            body.set_facecolor(color)
+            body.set_facecolor(colour)
             body.set_edgecolor("none")
             body.set_alpha(.42)
-        ax.scatter(np.full(len(v), pos), v, s=10, alpha=.32, color=color,
+        ax.scatter(np.full(len(v), pos), v, s=10, alpha=.32, color=colour,
                    edgecolors="none", rasterized=True)
         ax.plot([pos-width*.28, pos+width*.28], [np.median(v)]*2,
-                color=color, lw=2)
+                color=colour, lw=2)
 
 
 def plot_dd_violin_by_macro(dd, stats, output, *, conditions=None,
-                            labels=None, colors=DEFAULT_COLORS):
+                            labels=None, colours=DEFAULT_COLOURS, colors=None):
     """Condition distributions with one panel per macro dimension."""
+    if colors is not None:
+        colours = colors
     conditions = _conditions(dd, conditions)
     bands = _bands(dd.band)
     mvals = sorted(dd.m.unique())
@@ -75,7 +78,7 @@ def plot_dd_violin_by_macro(dd, stats, output, *, conditions=None,
             values = [sub[(sub.band == band) & (sub.condition == cond)].dd_min
                       for cond in conditions]
             positions = [bi-.17, bi+.17]
-            _violin(ax, values, positions, colors, width=.3)
+            _violin(ax, values, positions, colours, width=.3)
             match = stats[(stats.m == m) & (stats.band == band)]
             if len(match):
                 star = _stars(float(match.iloc[0].q))
@@ -90,22 +93,24 @@ def plot_dd_violin_by_macro(dd, stats, output, *, conditions=None,
         ax.axis("off")
     axes[0, 0].set_ylabel("Minimum dynamical dependence")
     fig.legend([plt.Line2D([], [], marker="o", linestyle="", color=c)
-                for c in colors], labels, loc="upper right", frameon=False)
+                for c in colours], labels, loc="upper right", frameon=False)
     fig.tight_layout(rect=(0, 0, .96, 1))
     return _save(fig, output)
 
 
 def plot_dd_grand_average(dd, grand_stats, output, *,
                           conditions=None, labels=None,
-                          colors=DEFAULT_COLORS):
+                          colours=DEFAULT_COLOURS, colors=None):
     """Compare condition distributions pooled over macro dimensions."""
+    if colors is not None:
+        colours = colors
     conditions = _conditions(dd, conditions)
     bands = _bands(dd.band)
     fig, ax = plt.subplots(figsize=(15, 6.4))
     for bi, band in enumerate(bands):
         sub = dd[dd.band == band]
         values = [sub[sub.condition == cond].dd_min for cond in conditions]
-        _violin(ax, values, [bi-.18, bi+.18], colors, width=.34)
+        _violin(ax, values, [bi-.18, bi+.18], colours, width=.34)
         match = grand_stats[grand_stats.band == band]
         if len(match):
             star = _stars(float(match.iloc[0].q))
@@ -118,14 +123,16 @@ def plot_dd_grand_average(dd, grand_stats, output, *,
     ax.set_axisbelow(True)
     labels = labels or conditions
     ax.legend([plt.Line2D([], [], marker="o", linestyle="", color=c)
-               for c in colors], labels, frameon=False, fontsize=13)
+               for c in colours], labels, frameon=False, fontsize=13)
     fig.tight_layout()
     return _save(fig, output)
 
 
 def plot_sf_index(sf, stats, output, *, conditions=None,
-                  labels=None, colors=DEFAULT_COLORS):
+                  labels=None, colours=DEFAULT_COLOURS, colors=None):
     """SF index by macro dimension and band, with subject trajectories."""
+    if colors is not None:
+        colours = colors
     conditions = _conditions(sf, conditions)
     bands = _bands(sf.band)
     mvals = sorted(sf.m.unique())
@@ -133,18 +140,18 @@ def plot_sf_index(sf, stats, output, *, conditions=None,
                              sharey=True, squeeze=False)
     for ax, band in zip(axes.flat, bands):
         sub = sf[sf.band == band]
-        for cond, color in zip(conditions, colors):
+        for cond, colour in zip(conditions, colours):
             block = sub[sub.condition == cond]
             for _, participant in block.groupby("subject"):
-                ax.plot(participant.m, participant.sf_index, color=color,
+                ax.plot(participant.m, participant.sf_index, color=colour,
                         alpha=.13, lw=.7)
             means = block.groupby("m").sf_index.agg(["mean", "std", "count"])
             x = means.index.to_numpy()
             y = means["mean"].to_numpy()
             sem = (means["std"]/np.sqrt(means["count"])).fillna(0).to_numpy()
-            ax.plot(x, y, "-o", color=color, lw=2.5)
+            ax.plot(x, y, "-o", color=colour, lw=2.5)
             ax.fill_between(x, y-1.64*sem, y+1.64*sem,
-                            color=color, alpha=.15)
+                            color=colour, alpha=.15)
         for m in mvals:
             match = stats[(stats.band == band) & (stats.m == m)]
             if len(match):
@@ -159,7 +166,7 @@ def plot_sf_index(sf, stats, output, *, conditions=None,
         ax.set_xlabel("Macro dimension")
     axes[0, 0].set_ylabel("Structure-fragmentation index")
     labels = labels or conditions
-    fig.legend([plt.Line2D([], [], color=c, marker="o") for c in colors],
+    fig.legend([plt.Line2D([], [], color=c, marker="o") for c in colours],
                labels, loc="upper right", frameon=False)
     fig.tight_layout(rect=(0, 0, .97, 1))
     return _save(fig, output)
@@ -199,8 +206,10 @@ def plot_similarity_matrices(matrices, output, *, conditions=None,
 
 
 def plot_timewindow_dd(dd, output, *, baseline, baseline_label=None, windows=None,
-                       colors=DEFAULT_COLORS):
+                       colours=DEFAULT_COLOURS, colors=None):
     """Four-window by five-band DD comparison, using paired subject rows."""
+    if colors is not None:
+        colours = colors
     windows = windows or list(dict.fromkeys(dd.window))
     baseline_label = baseline_label or str(baseline).title()
     bands = _bands(dd.band)
@@ -214,7 +223,7 @@ def plot_timewindow_dd(dd, output, *, baseline, baseline_label=None, windows=Non
             av = sub[sub.condition == baseline].groupby("subject").dd_min.mean()
             bv = sub[sub.condition != baseline].groupby("subject").dd_min.mean()
             pair = av.to_frame("a").join(bv.to_frame("b"), how="inner")
-            _violin(ax, [pair.a, pair.b], [-.2, .2], colors, width=.34)
+            _violin(ax, [pair.a, pair.b], [-.2, .2], colours, width=.34)
             ax.set_xticks([-.2, .2], [baseline_label, window], rotation=25)
             ax.grid(axis="y", alpha=.2)
             if ri == 0:
@@ -236,10 +245,10 @@ def plot_timewindow_sf(sf, output, *, baseline, windows=None):
         for ci, band in enumerate(bands):
             ax = axes[ri, ci]
             sub = sf[(sf.window == window) & (sf.band == band)]
-            for cond, color in zip((baseline, next(c for c in sub.condition.unique() if c != baseline)),
-                                   DEFAULT_COLORS):
+            for cond, colour in zip((baseline, next(c for c in sub.condition.unique() if c != baseline)),
+                                   DEFAULT_COLOURS):
                 means = sub[sub.condition == cond].groupby("m").sf_index.mean()
-                ax.plot(means.index, means.to_numpy(), "-o", color=color, lw=2)
+                ax.plot(means.index, means.to_numpy(), "-o", color=colour, lw=2)
             ax.set_ylim(0, 1)
             ax.set_xticks(sorted(sub.m.unique()))
             ax.grid(alpha=.2)
@@ -319,10 +328,10 @@ def plot_pairwise_heatmap(grand_stats, states, output, *, ylabel=None):
 def plot_time_changing_dd(window_table, output, *, ylabel="Minimum DD"):
     """Show how best DD changes across named windows for each dimension.
 
-    Pass the table from ``analysis.summarize_window_results``. Each band gets
+    Pass the table from ``analysis.summarise_window_results``. Each band gets
     its own panel; temporal DD, which has no band, gets one panel. Windows
     appear in table order. This is descriptive: each point comes from a
-    separately fitted model and optimization.
+    separately fitted model and optimisation.
     """
     frame = window_table.copy()
     if frame.empty:

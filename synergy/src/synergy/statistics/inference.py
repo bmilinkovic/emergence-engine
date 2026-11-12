@@ -99,7 +99,7 @@ def infer_groups(result: AnalysisResult, *, n_perm: int = 10_000,
     """Test within-subject atoms and each group against a chosen reference.
 
     Paired atom and similarity effects use sign-flip permutations. Between-group
-    effects use Welch tests. The reference group is set in ``analyze_subjects``.
+    effects use Welch tests. The reference group is set in ``analyse_subjects``.
     """
     if n_perm < 1:
         raise ValueError("n_perm must be positive")

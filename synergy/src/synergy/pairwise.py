@@ -1,6 +1,6 @@
 """Batch pairwise Gaussian MMI/CCS for arbitrary channel or region sets.
 
-Fits the same standardized Gaussian and 1e-10 covariance ridge. Gaussian local
+Fits the same standardised Gaussian and 1e-10 covariance ridge. Gaussian local
 MI is a quadratic polynomial; evaluate it with Numba rather than repeatedly
 fitting distributions. CCS still evaluates EVERY lagged sample, without binning,
 decimation, or covariance-only approximation. Outputs are in natural-log nats.
@@ -29,7 +29,7 @@ STS_WEIGHTS = _LATTICE_INV[15]
 
 def coefficients(cov):
     """Return 9 local-MI polynomials [constant, ten upper quadratic terms]."""
-    # cov: batch x 4 x 4, sample covariance after population-SD normalization.
+    # cov: batch x 4 x 4, sample covariance after population-SD normalisation.
     entropy = {}
     for mask in range(1, 16):
         idx = [k for k in range(4) if mask & (1 << k)]
@@ -117,11 +117,11 @@ if not _HAS_NUMBA:
         n = data.shape[1] - tau
         source = np.stack((data[pairs[:, 0], :n], data[pairs[:, 1], :n],
                            data[pairs[:, 0], tau:], data[pairs[:, 1], tau:]), axis=2)
-        center = np.stack((means[0, pairs[:, 0]], means[0, pairs[:, 1]],
+        centre = np.stack((means[0, pairs[:, 0]], means[0, pairs[:, 1]],
                            means[1, pairs[:, 0]], means[1, pairs[:, 1]]), axis=1)
         scale = np.stack((stds[0, pairs[:, 0]], stds[0, pairs[:, 1]],
                           stds[1, pairs[:, 0]], stds[1, pairs[:, 1]]), axis=1)
-        v = (source - center[:, None, :]) / scale[:, None, :]
+        v = (source - centre[:, None, :]) / scale[:, None, :]
         terms = np.concatenate((np.ones((*v.shape[:2], 1)),
                                 v[:, :, TRI[0]] * v[:, :, TRI[1]]), axis=2)
         mi = np.einsum('pik,ptk->pti', coefs, terms)
@@ -194,11 +194,11 @@ if not _HAS_NUMBA:
         n = data.shape[1] - tau
         source = np.stack((data[pairs[:, 0], :n], data[pairs[:, 1], :n],
                            data[pairs[:, 0], tau:], data[pairs[:, 1], tau:]), axis=2)
-        center = np.stack((means[0, pairs[:, 0]], means[0, pairs[:, 1]],
+        centre = np.stack((means[0, pairs[:, 0]], means[0, pairs[:, 1]],
                            means[1, pairs[:, 0]], means[1, pairs[:, 1]]), axis=1)
         scale = np.stack((stds[0, pairs[:, 0]], stds[0, pairs[:, 1]],
                           stds[1, pairs[:, 0]], stds[1, pairs[:, 1]]), axis=1)
-        v = (source - center[:, None, :]) / scale[:, None, :]
+        v = (source - centre[:, None, :]) / scale[:, None, :]
         terms = np.concatenate((np.ones((*v.shape[:2], 1)),
                                 v[:, :, TRI[0]] * v[:, :, TRI[1]]), axis=2)
         mi = np.einsum('pik,ptk->pti', coefs, terms)
@@ -240,7 +240,7 @@ def pairwise_atoms(data, tau=1, methods=('mmi', 'ccs'), progress=None,
     stds = np.stack([data[:,:n].std(axis=1),data[:,tau:].std(axis=1)])
     if np.any(stds < 1e-12):
         raise ValueError('Constant/near-constant channel')
-    # Accumulate centered cross products in chunks to bound working memory.
+    # Accumulate centred cross products in chunks to bound working memory.
     scatter = np.zeros((2*d,2*d))
     for start in range(0,n,32768):
         stop = min(n,start+32768)

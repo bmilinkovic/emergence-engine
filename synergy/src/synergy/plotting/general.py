@@ -9,7 +9,8 @@ import pandas as pd
 from ..analysis.workflow import AnalysisResult
 from ..statistics.inference import InferenceResult
 
-COLORS = {"rtr": "#2E5EAA", "sts": "#D43D2A", "balance": "#8A5A44"}
+COLOURS = {"rtr": "#2E5EAA", "sts": "#D43D2A", "balance": "#8A5A44"}
+COLORS = COLOURS  # Backward compatible public name.
 
 
 def _groups(result: AnalysisResult, order: Sequence[str] | None) -> tuple[str, ...]:
@@ -66,9 +67,9 @@ def plot_atom_pairs(result: AnalysisResult, *, measure: str = "mean_edge",
                 if not len(values):
                     continue
                 x = i + offset
-                ax.scatter(np.full(len(values), x), values, color=COLORS[atom], alpha=0.35, s=12)
+                ax.scatter(np.full(len(values), x), values, color=COLOURS[atom], alpha=0.35, s=12)
                 ax.errorbar(x, values.mean(), yerr=(values.std(ddof=1)/np.sqrt(len(values)) if len(values)>1 else 0),
-                            fmt="o", color=COLORS[atom], markeredgecolor="white", ms=9, capsize=3, lw=2)
+                            fmt="o", color=COLOURS[atom], markeredgecolor="white", ms=9, capsize=3, lw=2)
             if len(tests):
                 row_test = test_filter(tests)
                 row_test = row_test.loc[row_test.method.eq(method) & row_test.group.eq(group)]
@@ -79,7 +80,7 @@ def plot_atom_pairs(result: AnalysisResult, *, measure: str = "mean_edge",
         ax.set_ylabel("Spearman ρ" if reference is not None else measure.replace("_", " "))
         ax.spines[["top", "right"]].set_visible(False)
         ax.grid(axis="y", alpha=.18)
-    handles = [plt.Line2D([], [], marker="o", linestyle="", color=COLORS[a], label=a.upper()) for a in ("rtr", "sts")]
+    handles = [plt.Line2D([], [], marker="o", linestyle="", color=COLOURS[a], label=a.upper()) for a in ("rtr", "sts")]
     fig.legend(handles=handles, loc="upper right")
     return fig
 
@@ -102,8 +103,8 @@ def plot_global_atoms(result: AnalysisResult, *, group_order: Sequence[str] | No
                 if len(values) > 1:
                     violin = ax.violinplot([values], positions=[i], widths=.65, showextrema=False)
                     for body in violin["bodies"]:
-                        body.set_facecolor(COLORS[atom]); body.set_alpha(.2)
-                ax.scatter(np.full(len(values), i), values, s=12, alpha=.45, color=COLORS[atom])
+                        body.set_facecolor(COLOURS[atom]); body.set_alpha(.2)
+                ax.scatter(np.full(len(values), i), values, s=12, alpha=.45, color=COLOURS[atom])
                 ax.plot([i-.14, i+.14], [np.median(values)]*2, color="#263238", lw=2)
             ax.set_title(f"{method.upper()} · {atom.upper()}")
             ax.set_xticks(range(len(groups)), groups, rotation=30, ha="right")
@@ -115,7 +116,7 @@ def plot_global_atoms(result: AnalysisResult, *, group_order: Sequence[str] | No
 def plot_system_gradients(result: AnalysisResult, *, group_order: Sequence[str] | None = None) -> plt.Figure:
     """Gradient violins for user-provided node systems; no atlas is assumed."""
     if result.node_systems is None or result.systems.empty:
-        raise ValueError("Pass node_systems to analyze_subjects for this figure")
+        raise ValueError("Pass node_systems to analyse_subjects for this figure")
     groups = _groups(result, group_order)
     systems = tuple(dict.fromkeys(result.node_systems))
     fig, axes = plt.subplots(len(result.methods), len(groups), squeeze=False,

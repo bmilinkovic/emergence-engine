@@ -71,7 +71,7 @@ def _pre_single(cak, initial, niters, gdes, sig0, gdls, tol, history):
 
 
 def _final_single(h, freqs, idx, initial, niters, sig0, gdls, tol, history):
-    """Optimize band-limited DD, accepting only steps that improve it."""
+    """Optimise band-limited DD, accepting only steps that improve it."""
     increase, decrease = _factors(gdls)
     stol, dtol, gtol = _tolerances(tol)
     l = orthonormalise(initial)
@@ -182,10 +182,10 @@ def cluster_representatives(bases, tolerance=1e-10):
 def run_two_stage(a, v, fs, fres, m, bands, *, initial_bases,
                   pre_iters=10000, final_iters=10000, cluster_tol=1e-10,
                   history=False):
-    """Optimize a fast proxy, keep distinct solutions, then refine band DD.
+    """Optimise a fast proxy, keep distinct solutions, then refine band DD.
 
     ``initial_bases`` is an (n,m,runs) array or a mapping from band name to
-    such arrays. Use the same starting bases to compare optimization runs.
+    such arrays. Use the same starting bases to compare optimisation runs.
     ``bands`` maps names to inclusive (low_hz, high_hz) tuples.
     """
     _, _, _, cak, h, freqs = prepare_var(a, v, fs, fres)

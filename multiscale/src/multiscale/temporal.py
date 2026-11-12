@@ -1,4 +1,4 @@
-"""Direct state-space temporal DD optimization from SSDI-1's ES path."""
+"""Direct state-space temporal DD optimisation from SSDI-1's ES path."""
 
 from dataclasses import dataclass
 from concurrent.futures import ProcessPoolExecutor
@@ -107,11 +107,11 @@ def opt_es_dd(a, c, k, initial, *, maxiters=100, sig=1e-4, rule=0.2,
 def opt_es_dd_mruns(a, c, k, initial, *, maxiters=100, sig=1e-4, rule=0.2,
                     esrule=None, tol=1e-8, seed=None, mutations=None,
                     history=False, prebalance=True, workers=1):
-    """Run and sort direct temporal-DD ES optimizations over all starts.
+    """Run and sort direct temporal-DD ES optimisations over all starts.
 
     ``initial`` has shape ``(n,m,runs)``. An optional exact mutation stream
     has shape ``(n,m,maxiters-1,runs)``. This method is usually much slower
-    than the transfer-function gradient optimizer.
+    than the transfer-function gradient optimiser.
     """
     initial = np.asarray(initial, float)
     if initial.ndim != 3:

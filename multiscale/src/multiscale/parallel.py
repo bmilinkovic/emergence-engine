@@ -12,7 +12,7 @@ from .optimise import (opt_gd_ddx_mruns, canonical_opt_dds_mruns,
 _SHARED = None
 
 
-def _initialize(cak, h, freqs, v):
+def _initialise(cak, h, freqs, v):
     global _SHARED
     _SHARED = (cak, h, freqs, v)
 
@@ -43,7 +43,7 @@ def run_grid_parallel(a, v, fs, fres, dimensions, bands, *, runs=100, seed=0,
                       initial_bases=None, workers=None, pre_iters=10000,
                       final_iters=10000, cluster_tol=1e-10, history=False,
                       progress=None):
-    """Optimize every requested ``(dimension, band)`` block independently.
+    """Optimise every requested ``(dimension, band)`` block independently.
 
     Parameters
     ----------
@@ -51,7 +51,7 @@ def run_grid_parallel(a, v, fs, fres, dimensions, bands, *, runs=100, seed=0,
     dimensions : iterable of integers in ``1..n-1``
     bands : mapping of name to inclusive ``(low_hz, high_hz)`` bounds
     initial_bases : optional mapping ``(dimension, band_name) -> (n,m,runs)``
-        Supply fixed bases here when comparing optimization runs.
+        Supply fixed bases here when comparing optimisation runs.
     workers : processes; one runs serially. Defaults to at most eight CPUs.
     progress : optional callback ``(completed, total, dimension, band, result)``
 
@@ -86,7 +86,7 @@ def run_grid_parallel(a, v, fs, fres, dimensions, bands, *, runs=100, seed=0,
                       pre_iters, final_iters, history, cluster_tol))
     results = {}
     if workers == 1:
-        _initialize(cak, h, freqs, v)
+        _initialise(cak, h, freqs, v)
         for completed, task in enumerate(tasks, start=1):
             m, name, result = _run_block(task)
             results[(m, name)] = result
@@ -94,7 +94,7 @@ def run_grid_parallel(a, v, fs, fres, dimensions, bands, *, runs=100, seed=0,
                 progress(completed, len(tasks), m, name, result)
     else:
         with ProcessPoolExecutor(max_workers=workers,
-                                 initializer=_initialize,
+                                 initializer=_initialise,
                                  initargs=(cak, h, freqs, v)) as pool:
             futures = [pool.submit(_run_block, task) for task in tasks]
             for completed, future in enumerate(as_completed(futures), start=1):

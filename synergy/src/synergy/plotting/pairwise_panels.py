@@ -8,7 +8,8 @@ COHORT_ORDER = ["control", "emcs", "mcs", "uws", "coma"]
 COHORT_DISPLAY = {"control":"CNTL","emcs":"EMCS","mcs":"MCS","uws":"UWS","coma":"COMA"}
 METHOD_ORDER = ["mmi","ccs"]
 METHOD_LABELS = {"mmi":"MMI","ccs":"CCS"}
-ATOM_COLORS = {"rtr":"#2E5EAA","sts":"#D43D2A"}
+ATOM_COLOURS = {"rtr":"#2E5EAA","sts":"#D43D2A"}
+ATOM_COLORS = ATOM_COLOURS  # Backward compatible public name.
 
 def _set_style() -> None:
     plt.rcParams.update(
@@ -56,11 +57,11 @@ def _safe_sem(x: np.ndarray) -> float:
     return float(arr.std(ddof=1) / np.sqrt(arr.size))
 
 
-def _add_bracket(ax: plt.Axes, x0: float, x1: float, y: float, text: str, color: str = "#1F2430") -> None:
+def _add_bracket(ax: plt.Axes, x0: float, x1: float, y: float, text: str, colour: str = "#1F2430") -> None:
     yr = ax.get_ylim()[1] - ax.get_ylim()[0]
     h = 0.025 * yr
-    ax.plot([x0, x0, x1, x1], [y, y + h, y + h, y], color=color, lw=1.2, clip_on=False)
-    ax.text((x0 + x1) / 2.0, y + h + 0.008 * yr, text, ha="center", va="bottom", fontsize=14, fontweight="bold", color=color)
+    ax.plot([x0, x0, x1, x1], [y, y + h, y + h, y], color=colour, lw=1.2, clip_on=False)
+    ax.text((x0 + x1) / 2.0, y + h + 0.008 * yr, text, ha="center", va="bottom", fontsize=14, fontweight="bold", color=colour)
 
 
 def _plot_similarity_paired(
@@ -90,11 +91,11 @@ def _plot_similarity_paired(
                 vals = vals[np.isfinite(vals)]
                 x = cidx + offsets[atom]
                 jitter = rng.normal(0.0, 0.05, size=vals.size)
-                ax.scatter(np.full(vals.size, x) + jitter, vals, s=42, color=ATOM_COLORS[atom], alpha=0.28, edgecolors="none", zorder=2)
+                ax.scatter(np.full(vals.size, x) + jitter, vals, s=42, color=ATOM_COLOURS[atom], alpha=0.28, edgecolors="none", zorder=2)
                 mean = float(np.nanmean(vals)) if vals.size else np.nan
                 sem = _safe_sem(vals)
                 ax.errorbar(x, mean, yerr=sem, color="#1E1E1E", capsize=3, lw=1.2, zorder=4)
-                ax.scatter(x, mean, s=64, color=ATOM_COLORS[atom], edgecolor="black", linewidth=0.4, zorder=5)
+                ax.scatter(x, mean, s=64, color=ATOM_COLOURS[atom], edgecolor="black", linewidth=0.4, zorder=5)
                 yvals.extend(list(vals))
 
             hit = stats_df.loc[(stats_df["method"] == method) & (stats_df["cohort"] == cohort)]
@@ -119,8 +120,8 @@ def _plot_similarity_paired(
     axes[-1].set_xticks(range(len(COHORT_ORDER)))
     axes[-1].set_xticklabels([COHORT_DISPLAY[c] for c in COHORT_ORDER])
     handles = [
-        plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=ATOM_COLORS["rtr"], markersize=10, label="Redundancy (RTR)"),
-        plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=ATOM_COLORS["sts"], markersize=10, label="Synergy (STS)"),
+        plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=ATOM_COLOURS["rtr"], markersize=10, label="Redundancy (RTR)"),
+        plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=ATOM_COLOURS["sts"], markersize=10, label="Synergy (STS)"),
     ]
     fig.legend(handles=handles, frameon=False, loc="upper center", bbox_to_anchor=(0.5, 0.968), ncol=2, fontsize=16)
     fig.suptitle(title, fontsize=24, y=0.992)
@@ -152,11 +153,11 @@ def _plot_graph_paired(
                     vals = vals[np.isfinite(vals)]
                     x = cidx + offsets[atom]
                     jitter = rng.normal(0.0, 0.05, size=vals.size)
-                    ax.scatter(np.full(vals.size, x) + jitter, vals, s=40, color=ATOM_COLORS[atom], alpha=0.28, edgecolors="none", zorder=2)
+                    ax.scatter(np.full(vals.size, x) + jitter, vals, s=40, color=ATOM_COLOURS[atom], alpha=0.28, edgecolors="none", zorder=2)
                     mean = float(np.nanmean(vals)) if vals.size else np.nan
                     sem = _safe_sem(vals)
                     ax.errorbar(x, mean, yerr=sem, color="#1E1E1E", capsize=3, lw=1.2, zorder=4)
-                    ax.scatter(x, mean, s=64, color=ATOM_COLORS[atom], edgecolor="black", linewidth=0.4, zorder=5)
+                    ax.scatter(x, mean, s=64, color=ATOM_COLOURS[atom], edgecolor="black", linewidth=0.4, zorder=5)
                     yvals.extend(list(vals))
                 hit = stats_df.loc[(stats_df["method"] == method) & (stats_df["cohort"] == cohort) & (stats_df["measure"] == metric)]
                 if not hit.empty:
@@ -179,8 +180,8 @@ def _plot_graph_paired(
             pad = 0.18 * (np.nanmax(yvals) - np.nanmin(yvals) + 1e-9)
             ax.set_ylim(np.nanmin(yvals) - 0.08 * pad, np.nanmax(yvals) + pad)
     handles = [
-        plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=ATOM_COLORS["rtr"], markersize=10, label="Redundancy (RTR)"),
-        plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=ATOM_COLORS["sts"], markersize=10, label="Synergy (STS)"),
+        plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=ATOM_COLOURS["rtr"], markersize=10, label="Redundancy (RTR)"),
+        plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=ATOM_COLOURS["sts"], markersize=10, label="Synergy (STS)"),
     ]
     fig.legend(handles=handles, frameon=False, loc="upper center", bbox_to_anchor=(0.5, 0.985), ncol=2, fontsize=16)
     fig.subplots_adjust(left=0.12, right=0.98, top=0.89, bottom=0.11, wspace=0.18, hspace=0.18)

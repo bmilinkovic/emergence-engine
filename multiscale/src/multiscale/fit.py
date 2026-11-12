@@ -67,8 +67,8 @@ def tsdata_to_var(x, p, regmode="LWR"):
     if mode == "LWR" and p >= m-1:
         raise ValueError("LWR requires p < time-1 to match MVGC2's covariance divisor")
     if p == 0:
-        centered = _demean(x).reshape(n, m*trials, order="F")
-        v = centered @ centered.T/(m*trials-1)
+        centred = _demean(x).reshape(n, m*trials, order="F")
+        v = centred @ centred.T/(m*trials-1)
         return VARFit(np.zeros((n, n, 0)), v, x.copy())
     x = _demean(x)
     if mode == "OLS":
@@ -144,8 +144,8 @@ def tsdata_to_varmo(x, pmax, regmode="LWR", alpha=0.01):
     likelihood = np.empty(pmax+1)
     parameters = np.arange(pmax+1)*n*n
     sizes = np.empty(pmax+1)
-    centered = _demean(x).reshape(n, m*trials, order="F")
-    cov0 = centered @ centered.T/(m*trials)
+    centred = _demean(x).reshape(n, m*trials, order="F")
+    cov0 = centred @ centred.T/(m*trials)
     likelihood[0] = -np.linalg.slogdet(cov0)[1]/2
     sizes[0] = m*trials
     for p in range(1, pmax+1):

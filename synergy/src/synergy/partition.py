@@ -1,7 +1,7 @@
 """Exhaustive minimum-information bipartition selection.
 
 The Gaussian and discrete selectors scan
-bipartitions and minimize effective information divided by the smaller
+bipartitions and minimise effective information divided by the smaller
 past-state entropy. Effective information is time-delayed system MI minus
 the sum of within-part time-delayed MIs. This module performs the same
 calculation without a JVM. Entropy and MI units cancel in the score.
@@ -57,14 +57,14 @@ def minimum_information_partition(
     data: np.ndarray, *, tau: int = 1, kind: str = "gaussian",
     max_variables: int = 12,
 ) -> tuple[list[int], list[int]]:
-    """Find the normalized effective-information minimum bipartition.
+    """Find the normalised effective-information minimum bipartition.
 
     ``data`` is variables × time; ``tau`` is a positive sample lag. The
     Gaussian version fits a full lagged sample covariance. The discrete
     version treats each integer-valued row as a categorical variable.
     Exhaustive search visits ``2**(D-1)-1`` bipartitions; ``max_variables``
     guards against accidental exponential work. A zero smaller-part entropy
-    cannot normalize the score and raises an error.
+    cannot normalise the score and raises an error.
     """
     x = np.asarray(data)
     if x.ndim != 2:

@@ -62,12 +62,12 @@ def _rho(a: np.ndarray, b: np.ndarray) -> float:
     return float(stats.spearmanr(x[good], y[good]).statistic)
 
 
-def analyze_subjects(
+def analyse_subjects(
     records: Sequence[SubjectRecord], *, node_labels: Sequence[str] | None = None,
     node_systems: Sequence[str] | None = None, group_order: Sequence[str] | None = None,
     reference_group: str | None = None,
 ) -> AnalysisResult:
-    """Summarize arbitrary groups and node sets without preprocessing assumptions.
+    """Summarise arbitrary groups and node sets without preprocessing assumptions.
 
     Matrices must share a node order. Missing edges may be NaN; all finite
     undirected off-diagonal edges contribute to edge-level summaries.
@@ -150,3 +150,7 @@ def analyze_subjects(
     return AnalysisResult(pd.DataFrame(subject_rows), pd.DataFrame(similarity_rows),
                           pd.DataFrame(nodal_rows), pd.DataFrame(system_rows),
                           records, labels, systems, groups, reference, first_methods)
+
+
+# Keep the earlier public name available for existing notebooks and scripts.
+analyze_subjects = analyse_subjects

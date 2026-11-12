@@ -14,7 +14,7 @@ def run_full_dd(a, v, fs, fres, initial_bases, *,
                 cluster_tol=1e-10, spectral_sig=0.1,
                 state_space_sig=1e-4, es_rule=0.2, seed=None,
                 history=False, state_space_workers=1):
-    """Run SSDI-1 proxy DDx and select either or both actual DD optimizers.
+    """Run SSDI-1 proxy DDx and select either or both actual DD optimisers.
 
     ``spectral`` uses ``trfun2dd``/``trfun2ddgrad`` and gradient descent on
     the full transfer-function spectrum. ``state_space`` uses ``iss2dd`` and

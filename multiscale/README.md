@@ -24,7 +24,7 @@ small synthetic recording.
 
 Pass signals as `(nodes, samples, trials)`. A single trial can be a two-dimensional
 `(nodes, samples)` array. Decide how to clean and segment your recordings
-**before** fitting. EEG and fMRI differ in sampling rate, filtering, artifacts,
+**before** fitting. EEG and fMRI differ in sampling rate, filtering, artefacts,
 stationarity, and the meaning of a sample. Keep preprocessing and node order
 consistent across subjects and conditions.
 
@@ -58,7 +58,7 @@ print(selected.order, selected.candidates)
 
 Choose AIC, BIC, HQC, or LRT for the model order; choose LWR or OLS for fitting.
 LWR follows Morf's multichannel recursion. OLS solves the lagged least-squares
-problem by rank-revealing QR. An order-zero model has no dynamics to optimize.
+problem by rank-revealing QR. An order-zero model has no dynamics to optimise.
 
 ## Spectral DD
 
@@ -77,8 +77,8 @@ results = run_grid_parallel(
 print(results[(2, "slow")]["final"].values[0])
 ```
 
-Each dimension × band search first optimizes a fast proxy, groups near-identical
-solutions, and then optimizes band-limited DD. `final.values` are sorted from
+Each dimension × band search first optimises a fast proxy, groups near-identical
+solutions, and then optimises band-limited DD. `final.values` are sorted from
 lowest DD upward. The associated bases are in decorrelated coordinates;
 `final_original_bases` maps them back to the original signals. Increase the
 number of restarts and iteration limits for a serious analysis. Dimensions
@@ -108,7 +108,7 @@ refinement. Band-limited spectral DD uses `run_grid_parallel` instead.
 
 A recording can change state. Give each period a name and a `(start, stop)`
 range in **sample indices**; `stop` is excluded. The package fits a fresh VAR
-model in every window and performs a fresh DD optimization there. This is a
+model in every window and performs a fresh DD optimisation there. This is a
 series of local, stationary-model estimates, rather than a single model whose
 parameters vary continuously. Windows may overlap and can have different
 lengths, but each must contain enough samples for its VAR order.
@@ -129,7 +129,7 @@ rows = minimum_dd_by_window(trajectory, domain="spectral")
 
 Set `domain="temporal"` and omit `bands` for direct state-space DD in each
 window. `trajectory["during"].model` contains that window's selected fit;
-`trajectory["during"].blocks` contains its optimization results. The summary
+`trajectory["during"].blocks` contains its optimisation results. The summary
 rows include best DD, model order, and number of final solutions. Treat a
 change in DD alongside a change in model order or fit quality. Use the same
 preprocessing, node definitions, and frequency grid in every window.
@@ -137,27 +137,30 @@ preprocessing, node definitions, and frequency grid in every window.
 For a quick figure with `multiscale[plots]`:
 
 ```python
-from multiscale.analysis import summarize_window_results
+from multiscale.analysis import summarise_window_results
 from multiscale.visualisation import plot_time_changing_dd
 
-window_table = summarize_window_results(trajectory, domain="spectral")
+window_table = summarise_window_results(trajectory, domain="spectral")
 plot_time_changing_dd(window_table, "figures/dd_over_time")
 ```
 
 ## Group analysis and figures
 
-`multiscale.analysis` converts optimized solutions to tidy subject tables and
-run-similarity matrices. `multiscale.statistics` provides paired Wilcoxon tests,
+`multiscale.analysis` converts optimised solutions to tidy subject tables and
+run-similarity matrices. It uses British spellings such as
+`summarise_grid_results` and `summarise_window_results`; the earlier
+`summarize_*` names remain available for existing scripts.
+`multiscale.statistics` provides paired Wilcoxon tests,
 Benjamini–Hochberg correction, and descriptive pooled comparisons.
 `multiscale.visualisation` saves publication figures as PDF and PNG.
 
 ```python
-from multiscale.analysis import summarize_grid_results
+from multiscale.analysis import summarise_grid_results
 from multiscale.statistics import paired_tests
 from multiscale.visualisation import plot_dd_violin_by_macro
 
 # Repeat this for each participant and concatenate the resulting tables.
-dd, sf, matrices = summarize_grid_results(results,
+dd, sf, matrices = summarise_grid_results(results,
                                           subject="participant_01",
                                           condition="control")
 # After combining all participants and both conditions into all_dd:
@@ -174,14 +177,14 @@ descriptive because pairs from one subject are dependent; use subject-level
 paired tests for the main inference. Specify the family of comparisons for
 multiple-testing correction before interpreting adjusted p values.
 
-## License and credit
+## Licence and credit
 
 Copyright (c) 2026 Borjan Milinkovic. Multiscale is distributed under
 [GPL-3.0-only](LICENSE). Core routines were translated and adapted from
 Lionel Barnett's [SSDI](https://github.com/lcbarnett/ssdi) and
 [MVGC2](https://github.com/lcbarnett/MVGC2) toolboxes; see
 [NOTICE.md](NOTICE.md) for attribution. The separate Synergy package has its
-own MIT license.
+own MIT licence.
 
 ## Source papers
 

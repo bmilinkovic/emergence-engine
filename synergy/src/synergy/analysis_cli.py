@@ -4,7 +4,7 @@ import argparse
 import os
 from pathlib import Path
 import pandas as pd
-from .analysis.doc import run as analyze_doc
+from .analysis.doc import run as analyse_doc
 from .plotting.pairwise_panels import plot_similarity_paired, plot_graph_paired
 from .plotting.gradient_violin import render_violin_grid
 from .plotting.gradient_surface import render_surface_panel
@@ -49,11 +49,11 @@ def render(input_dir: Path, output_dir: Path, *, tables_dir: Path | None = None,
 
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("command", choices=("render", "analyze"))
+    p.add_argument("command", choices=("render", "analyse", "analyze"))
     p.add_argument("--input", type=Path, required=True,
                    help="Repaired DoC direct/ or deconvolved/ directory")
     p.add_argument("--output", type=Path, required=True)
-    p.add_argument("--manifest", type=Path, help="Original subject manifest; required for analyze")
+    p.add_argument("--manifest", type=Path, help="Original subject manifest; required for analyse")
     p.add_argument("--atlas", type=Path, default=os.environ.get("PHIID_AAL_ATLAS"))
     p.add_argument("--fsaverage", type=Path, default=os.environ.get("PHIID_FSAVERAGE"))
     p.add_argument("--mesh-cache", type=Path, default=None)
@@ -64,11 +64,11 @@ def main() -> None:
         p.error(f"Input directory does not exist: {source}")
     if args.atlas is None or args.fsaverage is None:
         p.error("Pass --atlas and --fsaverage (or PHIID_AAL_ATLAS and PHIID_FSAVERAGE)")
-    if args.command == "analyze":
+    if args.command in ("analyse", "analyze"):
         if args.manifest is None:
-            p.error("--manifest is required for analyze")
-        analyze_doc(source, output, args.manifest, render=False)
-    render(source, output, tables_dir=output if args.command == "analyze" else source,
+            p.error("--manifest is required for analyse")
+        analyse_doc(source, output, args.manifest, render=False)
+    render(source, output, tables_dir=output if args.command in ("analyse", "analyze") else source,
            atlas_path=args.atlas, fsaverage_path=args.fsaverage,
            mesh_cache=args.mesh_cache or output / "surface_cache")
 

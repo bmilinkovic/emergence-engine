@@ -1,6 +1,6 @@
 """Follow dynamical dependence as a recording moves through named windows.
 
-Each window gets its own VAR fit and its own optimization. A result therefore
+Each window gets its own VAR fit and its own optimisation. A result therefore
 describes the dynamics *within* that part of the recording. Window boundaries
 are sample indices, with the end index excluded.
 """
@@ -30,7 +30,7 @@ def run_time_changing_dd(signals, windows, *, domain, fs, fres, dimensions,
                          runs=100, seed=0, workers=1, pre_iters=10000,
                          final_iters=10000, state_space_iters=100,
                          cluster_tol=1e-10, progress=None):
-    """Fit and optimize DD independently in each recording window.
+    """Fit and optimise DD independently in each recording window.
 
     ``signals`` has shape ``(nodes, samples[, trials])``. ``windows`` maps
     names to ``(start, stop)`` sample indices. Windows may overlap; each uses
@@ -38,10 +38,10 @@ def run_time_changing_dd(signals, windows, *, domain, fs, fres, dimensions,
     for model fitting, and compare windows only when their preprocessing and
     sampling rate are consistent.
 
-    Choose ``domain='temporal'`` for the direct state-space DD optimizer, or
+    Choose ``domain='temporal'`` for the direct state-space DD optimiser, or
     ``domain='spectral'`` for frequency-band canonical DD. Spectral mode needs
-    ``bands={name: (low_hz, high_hz)}``. Both modes first optimize the fast DDx
-    proxy and then optimize actual DD from representative proxy solutions.
+    ``bands={name: (low_hz, high_hz)}``. Both modes first optimise the fast DDx
+    proxy and then optimise actual DD from representative proxy solutions.
     The model order is chosen separately in each window using AIC, BIC, HQC,
     or LRT. The regression method is LWR or OLS. ``progress`` receives
     ``(window_name, completed_windows, total_windows)`` after each window.
@@ -49,7 +49,7 @@ def run_time_changing_dd(signals, windows, *, domain, fs, fres, dimensions,
     Returns a dictionary of ``WindowResult`` objects. In spectral mode,
     ``blocks[(dimension, band)]`` is the same result as ``run_grid_parallel``.
     In temporal mode, ``blocks[dimension]`` is the result of ``run_full_dd``;
-    its ``state_space`` entry contains the optimized DD values and bases.
+    its ``state_space`` entry contains the optimised DD values and bases.
     """
     x = np.asarray(signals, float)
     if x.ndim == 2:

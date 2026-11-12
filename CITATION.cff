@@ -1,15 +1,15 @@
 cff-version: 1.2.0
 message: >-
-  If you use Emergence Toolkit, please cite this software and the relevant
+  If you use Emergence Engine, please cite this software and the relevant
   method or application papers listed in the README.
 type: software
-title: "Emergence Toolkit: Multiscale and Synergy"
+title: "Emergence Engine: Multiscale and Synergy"
 authors:
   - family-names: Milinkovic
     given-names: Borjan
     orcid: "https://orcid.org/0000-0001-6621-3824"
-url: "https://github.com/bmilinkovic/emergence-toolkit"
-repository-code: "https://github.com/bmilinkovic/emergence-toolkit"
+url: "https://github.com/bmilinkovic/emergence-engine"
+repository-code: "https://github.com/bmilinkovic/emergence-engine"
 abstract: >-
   Python tools for multiscale dynamical independence and PhiID synergy
   analysis of time-series data.

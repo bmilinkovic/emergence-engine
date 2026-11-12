@@ -56,7 +56,7 @@ MACRO_DISPLAY = {
     "Occipital-ventral": "OCC",
     "Subcortical": "SUB",
 }
-MACRO_COLORS = {
+MACRO_COLOURS = {
     "Sensorimotor": "#D1495B",
     "Frontal association": "#2E4057",
     "Orbitofrontal": "#F4A259",
@@ -67,6 +67,7 @@ MACRO_COLORS = {
     "Occipital-ventral": "#59A14F",
     "Subcortical": "#9C755F",
 }
+MACRO_COLORS = MACRO_COLOURS  # Backward compatible public name.
 
 
 def _canon_label(text: str) -> str:
@@ -118,7 +119,7 @@ def _macro_system_icon_arrays(data_root: Path, mapping_csv: Path) -> dict[str, n
         )
         if coords:
             coord_arr = np.vstack(coords)
-            disp_l.add_markers(coord_arr, marker_color=MACRO_COLORS[macro], marker_size=32)
+            disp_l.add_markers(coord_arr, marker_color=MACRO_COLOURS[macro], marker_size=32)
         ax_l.set_position([0.00, 0.03, 1.00, 0.94])
         buf = BytesIO()
         fig.savefig(buf, format="png", dpi=260, transparent=True, bbox_inches="tight", pad_inches=0.0)
@@ -222,8 +223,8 @@ def render_violin_grid(
                 showextrema=False,
             )
             for body, macro in zip(viol["bodies"], MACRO_ORDER, strict=True):
-                body.set_facecolor(MACRO_COLORS[macro])
-                body.set_edgecolor(MACRO_COLORS[macro])
+                body.set_facecolor(MACRO_COLOURS[macro])
+                body.set_edgecolor(MACRO_COLOURS[macro])
                 body.set_alpha(0.28)
                 body.set_linewidth(1.3)
 
@@ -235,16 +236,16 @@ def render_violin_grid(
                     np.full(vals.size, x) + jitter,
                     vals,
                     s=34,
-                    color=MACRO_COLORS[macro],
+                    color=MACRO_COLOURS[macro],
                     alpha=0.42,
                     linewidths=0,
                     zorder=3,
                 )
                 q1, med, q3 = np.percentile(vals, [25, 50, 75])
                 mean = float(np.mean(vals))
-                ax.vlines(x, q1, q3, color=MACRO_COLORS[macro], lw=2.2, zorder=4)
-                ax.hlines(med, x - 0.17, x + 0.17, color=MACRO_COLORS[macro], lw=2.4, zorder=4)
-                ax.scatter([x], [mean], s=62, facecolor="white", edgecolor=MACRO_COLORS[macro], linewidth=1.5, zorder=5)
+                ax.vlines(x, q1, q3, color=MACRO_COLOURS[macro], lw=2.2, zorder=4)
+                ax.hlines(med, x - 0.17, x + 0.17, color=MACRO_COLOURS[macro], lw=2.4, zorder=4)
+                ax.scatter([x], [mean], s=62, facecolor="white", edgecolor=MACRO_COLOURS[macro], linewidth=1.5, zorder=5)
 
                 row = stats_df.loc[
                     (stats_df["method"] == method)
@@ -280,7 +281,7 @@ def render_violin_grid(
             if r == 0:
                 ax.set_title(COHORT_DISPLAY[cohort], pad=12)
 
-    handles = [Patch(facecolor=MACRO_COLORS[m], edgecolor="none", label=f"{MACRO_DISPLAY[m]} = {m}") for m in MACRO_ORDER]
+    handles = [Patch(facecolor=MACRO_COLOURS[m], edgecolor="none", label=f"{MACRO_DISPLAY[m]} = {m}") for m in MACRO_ORDER]
     fig.legend(
         handles=handles,
         loc="lower center",

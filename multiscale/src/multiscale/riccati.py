@@ -1,7 +1,7 @@
 """MVGC2's extended-pencil QZ discrete Riccati solver.
 
 This follows ``mdare.m``: build H/J, deflate by QR, order the *outside*
-unit-circle generalized eigenvalues, then recover the invariant subspace.
+unit-circle generalised eigenvalues, then recover the invariant subspace.
 It deliberately does not call a generic discrete-ARE wrapper.
 """
 
@@ -54,7 +54,7 @@ def covariance_balance_iss(a, c, k):
     """Similarity transform to unit stationary state covariance.
 
     This changes only the state coordinates. The input-output process and
-    innovations covariance are identical, while the companion realization's
+    innovations covariance are identical, while the companion realisation's
     very large state covariance no longer degrades the QZ DARE residual.
     """
     a, c, k = np.asarray(a, float), np.asarray(c, float), np.asarray(k, float)

@@ -1,4 +1,4 @@
-"""Original SSDI-1 frequency-integrated temporal DI optimization.
+"""Original SSDI-1 frequency-integrated temporal DI optimisation.
 
 This is the ``trfun2dd`` / ``trfun2ddgrad`` route used by older SSDI analyses.
 This full-spectrum objective differs from the band-limited objective in
@@ -76,6 +76,6 @@ def _single(h, initial, niters, gdes, sig0, gdls, tol, history):
 
 def opt_gd_dds_mruns(h, initial, niters=10000, gdes=2, sig0=1e-3,
                      gdls=2.0, tol=1e-9, history=False) -> Optimisation:
-    """SSDI-1 multirun integrated spectral optimizer, variants 1 or 2."""
+    """SSDI-1 multirun integrated spectral optimiser, variants 1 or 2."""
     return _multirun(initial, lambda l: _single(h, l, niters, gdes, sig0,
                                                 gdls, tol, history))

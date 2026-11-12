@@ -1,4 +1,4 @@
-"""Turn optimized DD values and subspaces into tidy analysis tables."""
+"""Turn optimised DD values and subspaces into tidy analysis tables."""
 
 import numpy as np
 import pandas as pd
@@ -8,7 +8,7 @@ from .statistics import sf_index
 
 
 def similarity_matrix(bases):
-    """Distance between every pair of optimized subspaces.
+    """Distance between every pair of optimised subspaces.
 
     ``bases`` has shape ``(nodes, dimension, solutions)``. Distances use the
     largest principal angle, scaled so zero means the same subspace and one
@@ -25,13 +25,13 @@ def similarity_matrix(bases):
     return out
 
 
-def summarize_grid_results(results, *, subject, condition, threshold=1e-4):
-    """Summarize a spectral grid search for group analysis and plotting.
+def summarise_grid_results(results, *, subject, condition, threshold=1e-4):
+    """Summarise a spectral grid search for group analysis and plotting.
 
     ``results`` is the mapping returned by ``run_grid_parallel``. Returns
     ``(dd_table, sf_table, matrices)``. The tables have one row per band and
     macro dimension; ``matrices[(condition, band, dimension, subject)]`` keeps
-    each run-distance matrix for optional visualization.
+    each run-distance matrix for optional visualisation.
     """
     dd_rows, sf_rows, matrices = [], [], {}
     for (m, band), block in results.items():
@@ -50,7 +50,7 @@ def summarize_grid_results(results, *, subject, condition, threshold=1e-4):
     return pd.DataFrame(dd_rows), pd.DataFrame(sf_rows), matrices
 
 
-def summarize_window_results(results, *, domain):
+def summarise_window_results(results, *, domain):
     """Build a table of best DD values across named recording windows.
 
     This accepts ``run_time_changing_dd`` results. It reports the number of
@@ -60,3 +60,8 @@ def summarize_window_results(results, *, domain):
     from .time_changing import minimum_dd_by_window
 
     return pd.DataFrame(minimum_dd_by_window(results, domain=domain))
+
+
+# Keep earlier public names available for existing analysis scripts.
+summarize_grid_results = summarise_grid_results
+summarize_window_results = summarise_window_results

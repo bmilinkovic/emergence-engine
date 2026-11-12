@@ -80,7 +80,7 @@ def phiid_full(
     - `phiid_full(X1, X2, Y1, Y2, measure='CCS')`
 
     Notes:
-    - If no partition is supplied, a normalized effective-
+    - If no partition is supplied, a normalised effective-
       information MIB is selected by exhaustive search.
     - `measure` currently supports `CCS` and `MMI`.
     """

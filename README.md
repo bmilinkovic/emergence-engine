@@ -1,12 +1,10 @@
-# Emergence Toolkit
+# Emergence Engine
 
 *For studying what a system does together that its parts do not do alone.*
 
 Emergence can be approached from two directions. **Multiscale** asks whether a
 lower-dimensional description of a system has dynamics that are, to some
-degree, its own. **Synergy** asks what information is carried jointly by parts
-of a system across time. The two standalone Python packages live here under
-one roof. Both are ready to use; the wider project is still growing. 🔧
+degree, its independent and closed from the microlevel constituents. **Synergy** asks what information is carried jointly by parts of a system across time, that cannot be measured uniquely. The two standalone Python packages live here under one roof. Both are ready to use; the wider project is still growing. 🔧
 
 | Package | The question it asks | Status |
 |:--|:--|:--|
@@ -18,10 +16,10 @@ one roof. Both are ready to use; the wider project is still growing. 🔧
 A macroscopic variable can be constructed from many microscopic signals. If
 its own past predicts its future almost as well as the full system's past, it
 has a degree of **dynamical independence** (DI). The toolbox searches for such
-variables by minimizing **dynamical dependence** (DD) across dimensions. It
+variables by minimising **dynamical dependence** (DD) across dimensions. It
 fits VAR models and computes DD in the time domain, in frequency bands, or in
 successive recording windows to follow *time-changing DD*. It also describes
-the structure and fragmentation of the optimized solutions.
+the structure and fragmentation of the optimised solutions.
 
 These ideas run through our work on
 [emergent structure in biophysical neural models](https://doi.org/10.1371/journal.pcbi.1012572)
@@ -74,7 +72,7 @@ Keep node order, preprocessing, and sampling choices comparable across
 subjects and conditions. Neither package can decide these scientific choices
 for you (tempting as that would be).
 
-- **EEG:** document the montage or source space, reference, artifacts,
+- **EEG:** document the montage or source space, reference, artefacts,
   filtering, epoch selection, sampling rate, and any downsampling. Consider
   volume conduction and source leakage when interpreting relations between
   nodes.
@@ -93,7 +91,7 @@ for you (tempting as that would be).
   anaesthesia.” *Imaging Neuroscience, 4*, IMAG.a.1364.
   [doi:10.1162/IMAG.a.1364](https://doi.org/10.1162/IMAG.a.1364).
 
-## License
+## Licence
 
 Copyright © 2026 Borjan Milinkovic. Synergy is [MIT licensed](synergy/LICENSE).
 Multiscale is [GPL-3.0-only](multiscale/LICENSE) because it adapts routines
@@ -101,8 +99,8 @@ from MVGC2; see its [source attribution](multiscale/NOTICE.md).
 
 ## Cite this toolbox
 
-**If you use Emergence Toolkit, please cite the software** using the repository's
+**If you use Emergence Engine, please cite the software** using the repository's
 [CITATION.cff](CITATION.cff) (GitHub's “Cite this repository” button), and cite
 the relevant papers above for the methods and applications you use. Until a
 release DOI is minted, the citation points to this GitHub repository. Please
-include the version or commit you used so someone else can reproduce your run.
+include the version or commit you used so someone else can reproduce your run!!
