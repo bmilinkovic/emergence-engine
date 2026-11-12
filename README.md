@@ -2,96 +2,107 @@
 
 *For studying what a system does together that its parts do not do alone.*
 
-A Python home for two complementary ways of studying emergence in time series. **Synergy and Multiscale are both installable.** The wider project is still growing. 🔧
+Emergence can be approached from two directions. **Multiscale** asks whether a
+lower-dimensional description of a system has dynamics that are, to some
+degree, its own. **Synergy** asks what information is carried jointly by parts
+of a system across time. The two standalone Python packages live here under
+one roof. Both are ready to use; the wider project is still growing. 🔧
 
-| Module | What it covers | Status |
+| Package | The question it asks | Status |
 |:--|:--|:--|
-| [**Synergy**](synergy/) | ΦID computation, subject summaries, group statistics, and figures | ✅ Ready |
-| [**Multiscale**](multiscale/) | VAR fitting, temporal and spectral DD, and time-changing DD across recording windows | ✅ Ready |
+| [**Multiscale**](multiscale/) | Which macroscopic variables are dynamically independent of their microscopic basis? | ✅ Ready |
+| [**Synergy**](synergy/) | What do parts of a system tell us together about its future? | ✅ Ready |
 
-The project is designed for data from different modalities and cohorts. Your nodes can be fMRI regions, EEG channels, or another consistent set of signals; your groups can have whatever names your study needs.
+## Multiscale emergence
 
-## Get started
+A macroscopic variable can be constructed from many microscopic signals. If
+its own past predicts its future almost as well as the full system's past, it
+has a degree of **dynamical independence** (DI). The toolbox searches for such
+variables by minimizing **dynamical dependence** (DD) across dimensions. It
+fits VAR models and computes DD in the time domain, in frequency bands, or in
+successive recording windows to follow *time-changing DD*. It also describes
+the structure and fragmentation of the optimized solutions.
 
-From the repository root, install Synergy and its analysis dependencies:
-
-```bash
-python -m pip install -e './synergy[analysis]'
-```
-
-The core ΦID engine alone has a lighter install: `python -m pip install -e ./synergy`. For accelerated pairwise calculations, add the `fast` extra. The retained AAL90 DoC figure workflow uses the `doc` extra and separate atlas assets.
-
-To use Multiscale, install `python -m pip install ./multiscale`.
-Its [guide](multiscale/README.md) shows model fitting, temporal and spectral
-optimization, and recording-window analysis. Its
-[quickstart notebook](multiscale/notebooks/quickstart.ipynb) uses synthetic
-signals. MATLAB is not required.
-
-**fMRI caution:** The Multiscale DI/DD workflow is currently best treated as
-exploratory on BOLD recordings. Slow sampling and assumptions about the
-haemodynamic response can distort predictive relationships; see the
-[fMRI guidance and references](multiscale/README.md#fmri-use-particular-caution)
-before interpreting a result as neural-level DI.
-
-Multiscale builds on Barnett and Seth's
+These ideas run through our work on
+[emergent structure in biophysical neural models](https://doi.org/10.1371/journal.pcbi.1012572)
+and [multiscale neural dynamics in anaesthesia](https://doi.org/10.1162/IMAG.a.1364).
+The implementation draws on Barnett and Seth's
 [SSDI toolbox](https://github.com/lcbarnett/ssdi) and
 [dynamical independence paper](https://doi.org/10.1103/PhysRevE.108.014304),
-plus the [MVGC2 toolbox](https://github.com/lcbarnett/MVGC2) and the
+and on the [MVGC2 toolbox](https://github.com/lcbarnett/MVGC2) and
 [MVGC toolbox paper](https://doi.org/10.1016/j.jneumeth.2013.10.018).
 
-### A small working example
-
-```python
-import numpy as np
-from synergy import pairwise_atoms
-from synergy.analysis import SubjectRecord, analyze_subjects
-from synergy.statistics import infer_groups
-from synergy.plotting import render_figures
-
-rng = np.random.default_rng(7)
-records = []
-for group in ("control", "meditation"):
-    for number in range(3):
-        signal = rng.normal(size=(3, 500))  # nodes × samples
-        if group == "meditation":
-            signal[1] += 0.25 * signal[0]
-        atoms = pairwise_atoms(signal, tau=2, methods=("mmi",))
-        records.append(SubjectRecord(f"{group}_{number}", group, atoms))
-
-analysis = analyze_subjects(
-    records,
-    node_labels=["Fz", "Cz", "Pz"],
-    reference_group="control",
-)
-results = infer_groups(analysis, n_perm=999, seed=42)
-print(results.group_subject[["method", "atom", "group", "group_minus_reference", "q_fdr"]])
-render_figures(analysis, "figures", inference=results)
+```bash
+python -m pip install ./multiscale
 ```
 
-That example generates its own tiny dataset so you can try the workflow before connecting yours. The [quickstart notebook](synergy/notebooks/quickstart.ipynb) walks through loading prepared signals, choosing a lag, computing atoms, testing groups, and making figures. For the full API and the dataset-specific DoC commands, see the [Synergy guide](synergy/README.md).
+Start with the [Multiscale guide](multiscale/README.md) or its
+[quickstart notebook](multiscale/notebooks/quickstart.ipynb). For group tables
+and figures, install `./multiscale[plots]`.
+
+> **A note on fMRI:** DD/DI on BOLD recordings should currently be treated as
+> exploratory. Slow sampling and assumptions about the haemodynamic response
+> can distort predictive relationships. See the
+> [fMRI guidance](multiscale/README.md#fmri-use-particular-caution) before
+> interpreting a result as neural-level DI.
+
+## Synergy
+
+Synergy looks at information shared by collections of variables across time.
+Its ΦID engine decomposes information into 16 atoms, including redundant,
+unique, and synergistic contributions. The package also has general subject
+summaries, group statistics, and figures. Your cohorts and node labels can be
+whatever your study needs.
+
+```bash
+python -m pip install './synergy[analysis]'
+```
+
+The lighter core installs with `python -m pip install ./synergy`; add the `fast`
+extra for accelerated pairwise calculations. The retained AAL90 DoC figure
+workflow uses the `doc` extra and separate atlas assets. The
+[Synergy guide](synergy/README.md) and
+[quickstart notebook](synergy/notebooks/quickstart.ipynb) walk through a
+complete analysis. The original ΦID computation was extracted from Pedro
+Mediano's MATLAB toolboxes.
 
 ## Bring your own signals
 
-Synergy expects **preprocessed time series**, with one array per subject in `nodes × samples` order. Keep node order, preprocessing, and acquisition choices comparable across subjects. The lag `tau` is counted in samples: for fMRI its physical duration is `tau × TR`; for EEG it is `tau / sampling_rate` seconds.
+Both packages expect **preprocessed time series**. Multiscale takes
+`nodes × samples [× trials]`; Synergy's pairwise API takes `nodes × samples`.
+Keep node order, preprocessing, and sampling choices comparable across
+subjects and conditions. Neither package can decide these scientific choices
+for you (tempting as that would be).
 
-- **fMRI:** document the parcellation, ROI order, motion and nuisance handling, temporal filtering, and whether the signals are BOLD or HRF-deconvolved.
-- **EEG:** document the montage or source space, reference, bad-channel and artifact handling, filtering, epoch selection, sampling rate, and any downsampling. Consider volume conduction or source leakage when interpreting relationships between nodes.
+- **EEG:** document the montage or source space, reference, artifacts,
+  filtering, epoch selection, sampling rate, and any downsampling. Consider
+  volume conduction and source leakage when interpreting relations between
+  nodes.
+- **fMRI:** document the parcellation, ROI order, motion and nuisance handling,
+  filtering, TR, and whether signals are BOLD or HRF-deconvolved. The
+  Multiscale fMRI caution above is particularly important for DI.
 
-The toolbox leaves those decisions with you. That is where a great deal of the science lives, so keep a record of them. The notebook has a practical checklist.
+## Papers behind this project
 
-## Where things live
-
-```text
-emergence-toolkit/
-├── synergy/             ΦID engine + general analysis, statistics, plotting
-│   ├── notebooks/        runnable quickstart
-│   └── src/synergy/      installable Python package
-└── multiscale/          standalone temporal, spectral, and time-changing DD
-```
-
-Synergy computes the 16 ΦID atoms and offers MMI/CCS pairwise matrices. Its general analysis accepts arbitrary group and node labels; the original DoC analysis and cortical figures remain available as a dataset-specific preset. The ΦID computation was originally extracted from Pedro Mediano's MATLAB toolboxes.
+- **Milinkovic, B., Barnett, L., Carter, O., Seth, A. K., & Andrillon, T.**
+  (2025). “Capturing the emergent dynamical structure in biophysical neural
+  models.” *PLOS Computational Biology, 21*(5), e1012572.
+  [doi:10.1371/journal.pcbi.1012572](https://doi.org/10.1371/journal.pcbi.1012572).
+- **Milinkovic, B., Seth, A. K., Barnett, L., Carter, O., & Andrillon, T.**
+  (2026). “Emergent multiscale organisation of neural dynamics fragments in
+  anaesthesia.” *Imaging Neuroscience, 4*, IMAG.a.1364.
+  [doi:10.1162/IMAG.a.1364](https://doi.org/10.1162/IMAG.a.1364).
 
 ## License
 
-Synergy: [MIT](synergy/LICENSE). Multiscale: [GPL-3.0](multiscale/LICENSE)
-because its numerical path adapts MVGC2. © 2026 Borjan Milinkovic.
+Copyright © 2026 Borjan Milinkovic. Synergy is [MIT licensed](synergy/LICENSE).
+Multiscale is [GPL-3.0-only](multiscale/LICENSE) because it adapts routines
+from MVGC2; see its [source attribution](multiscale/NOTICE.md).
+
+## Cite this toolbox
+
+**If you use Emergence Toolkit, please cite the software** using the repository's
+[CITATION.cff](CITATION.cff) (GitHub's “Cite this repository” button), and cite
+the relevant papers above for the methods and applications you use. Until a
+release DOI is minted, the citation points to this GitHub repository. Please
+include the version or commit you used so someone else can reproduce your run.

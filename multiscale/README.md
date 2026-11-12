@@ -185,6 +185,19 @@ own MIT license.
 
 ## Source papers
 
+Our applications of this framework:
+
+- Milinkovic, B., Barnett, L., Carter, O., Seth, A. K., & Andrillon, T.
+  (2025). “Capturing the emergent dynamical structure in biophysical neural
+  models.” *PLOS Computational Biology, 21*(5), e1012572.
+  [doi:10.1371/journal.pcbi.1012572](https://doi.org/10.1371/journal.pcbi.1012572).
+- Milinkovic, B., Seth, A. K., Barnett, L., Carter, O., & Andrillon, T.
+  (2026). “Emergent multiscale organisation of neural dynamics fragments in
+  anaesthesia.” *Imaging Neuroscience, 4*, IMAG.a.1364.
+  [doi:10.1162/IMAG.a.1364](https://doi.org/10.1162/IMAG.a.1364).
+
+Foundational methods and source toolboxes:
+
 - Barnett, L., & Seth, A. K. (2023). “Dynamical independence: Discovering
   emergent macroscopic processes in complex dynamical systems.” *Physical
   Review E, 108*, 014304. [doi:10.1103/PhysRevE.108.014304](https://doi.org/10.1103/PhysRevE.108.014304).
