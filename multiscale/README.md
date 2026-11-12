@@ -59,6 +59,9 @@ print(selected.order, selected.candidates)
 Choose AIC, BIC, HQC, or LRT for the model order; choose LWR or OLS for fitting.
 LWR follows Morf's multichannel recursion. OLS solves the lagged least-squares
 problem by rank-revealing QR. An order-zero model has no dynamics to optimise.
+For LWR, model-order likelihoods are calculated in one recursion, as in
+MVGC2. Lagged observations are assembled in small trial groups to keep RAM
+use practical for long recordings; this does not change the fitted values.
 
 ## Spectral DD
 
