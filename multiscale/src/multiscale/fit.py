@@ -1,0 +1,165 @@
+"""MVGC2's LWR VAR fitting path for multitrial data."""
+
+from dataclasses import dataclass
+
+import numpy as np
+from scipy.linalg import cholesky, solve_triangular
+from scipy.stats import f as f_distribution
+
+
+@dataclass
+class VARFit:
+    coefficients: np.ndarray
+    covariance: np.ndarray
+    residuals: np.ndarray
+
+
+@dataclass
+class VARModelOrder:
+    aic: int
+    bic: int
+    hqc: int
+    lrt: int
+    aic_curve: np.ndarray
+    bic_curve: np.ndarray
+    hqc_curve: np.ndarray
+
+    def select(self, criterion="aic"):
+        """Choose a model order by AIC, BIC, HQC, or sequential LRT."""
+        name = criterion.lower()
+        if name not in ("aic", "bic", "hqc", "lrt"):
+            raise ValueError("criterion must be AIC, BIC, HQC, or LRT")
+        return getattr(self, name)
+
+
+@dataclass
+class SelectedVAR:
+    criterion: str
+    order: int
+    candidates: VARModelOrder
+    fit: VARFit
+
+
+def _demean(x):
+    return x-np.mean(x, axis=(1, 2), keepdims=True)
+
+
+def tsdata_to_var(x, p, regmode="LWR"):
+    """Fit MVGC2's Morf LWR VAR model to (nodes,time,trials) observations.
+
+    The algorithm retains the original lag-stack layout, Cholesky solves,
+    recursion order, and residual covariance divisor from tsdata_to_var.m.
+    The latter uses the final loop variable M, which is one time point less
+    per trial than the residual count; this is kept for result parity.
+    """
+    x = np.asarray(x, float)
+    if x.ndim == 2:
+        x = x[:, :, None]
+    if x.ndim != 3:
+        raise ValueError("data must have shape (nodes,time[,trials])")
+    n, m, trials = x.shape
+    if not 0 <= p < m-1:
+        raise ValueError("require 0 <= p < time-1")
+    if regmode.upper() != "LWR":
+        raise ValueError("this package implements the MVGC2 LWR path")
+    if p == 0:
+        centered = _demean(x).reshape(n, m*trials, order="F")
+        v = centered @ centered.T/(m*trials-1)
+        return VARFit(np.zeros((n, n, 0)), v, x.copy())
+    x = _demean(x)
+    p1 = p+1
+    p1n = p1*n
+    xx = np.zeros((p1, n, m+p, trials))
+    for lag in range(p1):
+        xx[lag, :, lag:lag+m, :] = x
+    ee = x.transpose(0, 1, 2).reshape(n, trials*m, order="F")
+    c = cholesky(ee @ ee.T, lower=True)
+    ic = np.linalg.inv(c)
+    af = np.zeros((n, p1n))
+    ab = np.zeros((n, p1n))
+    af[:, :n] = ic
+    ab[:, -n:] = ic
+    eye = np.eye(n)
+    k = 1
+    while k <= p:
+        kn = k*n
+        effective = trials*(m-k)
+        # MATLAB reshape(XX(:,1:k,k+1:m,:), k*n, M): node index is fastest.
+        ef = af[:, :kn] @ xx[:k, :, k:m, :].transpose(1, 0, 2, 3).reshape(kn, effective, order="F")
+        eb = ab[:, p1n-kn:] @ xx[:k, :, k-1:m-1, :].transpose(1, 0, 2, 3).reshape(kn, effective, order="F")
+        cf = cholesky(ef @ ef.T, lower=True)
+        cb = cholesky(eb @ eb.T, lower=True)
+        reflection = solve_triangular(cf, ef, lower=True) @ solve_triangular(cb, eb, lower=True).T
+        k += 1
+        kn = k*n
+        effective = trials*(m-k)
+        previous_f = af[:, :kn].copy()
+        previous_b = ab[:, p1n-kn:].copy()
+        scale_f = cholesky(eye-reflection @ reflection.T, lower=True)
+        scale_b = cholesky(eye-reflection.T @ reflection, lower=True)
+        af[:, :kn] = solve_triangular(scale_f, previous_f-reflection @ previous_b, lower=True)
+        ab[:, p1n-kn:] = solve_triangular(scale_b, previous_b-reflection.T @ previous_f, lower=True)
+    a0 = af[:, :n]
+    flat = -np.linalg.solve(a0, af[:, n:p1n])
+    coefficients = np.stack([flat[:, lag*n:(lag+1)*n] for lag in range(p)], axis=2)
+    e = np.linalg.solve(a0, ef)
+    v = e @ e.T/(effective-1)
+    residuals = e.reshape(n, m-p, trials, order="F")
+    return VARFit(coefficients, v, residuals)
+
+
+def tsdata_to_varmo(x, pmax, regmode="LWR", alpha=0.01):
+    """MVGC2 VAR order selection by AIC, BIC, HQC, and sequential LRT.
+
+    Mirrors ``tsdata_to_varll`` and ``tsdata_to_varmo`` including order zero,
+    each order's loop-variable effective sample size, and Bonferroni LRT.
+    """
+    x = np.asarray(x, float)
+    if x.ndim == 2:
+        x = x[:, :, None]
+    n, m, trials = x.shape
+    if not 1 <= pmax < m-1:
+        raise ValueError("require 1 <= pmax < time-1")
+    if regmode.upper() != "LWR":
+        raise ValueError("this package implements the MVGC2 LWR path")
+    likelihood = np.empty(pmax+1)
+    parameters = np.arange(pmax+1)*n*n
+    sizes = np.empty(pmax+1)
+    centered = _demean(x).reshape(n, m*trials, order="F")
+    cov0 = centered @ centered.T/(m*trials)
+    likelihood[0] = -np.linalg.slogdet(cov0)[1]/2
+    sizes[0] = m*trials
+    for p in range(1, pmax+1):
+        fit = tsdata_to_var(x, p, regmode)
+        # tsdata_to_varll.m updates k/M before evaluating order-p residuals.
+        size = trials*(m-p-1)
+        sizes[p] = size
+        covariance_ml = fit.residuals.reshape(n, -1, order="F")
+        covariance_ml = covariance_ml @ covariance_ml.T/size
+        likelihood[p] = -np.linalg.slogdet(covariance_ml)[1]/2
+    ratio = parameters/sizes
+    aic = -2*likelihood+2*ratio
+    bic = -2*likelihood+ratio*np.log(sizes)
+    hqc = -2*likelihood+2*ratio*np.log(np.log(sizes))
+    statistic = 2*np.diff(sizes*likelihood)
+    df = n*n
+    df2 = sizes[1:]-n*np.arange(1, pmax+1)-1
+    pvalues = np.full(pmax, np.inf)
+    good = df2 > 0
+    pvalues[good] = f_distribution.sf(statistic[good]/df, df, df2[good])
+    hits = np.flatnonzero(pvalues < alpha/pmax)
+    lrt = int(hits[-1]+1) if len(hits) else 0
+    return VARModelOrder(int(np.nanargmin(aic)), int(np.nanargmin(bic)),
+                         int(np.nanargmin(hqc)), lrt, aic, bic, hqc)
+
+
+def fit_var_auto(x, pmax, criterion="aic", *, regmode="LWR", alpha=0.01):
+    """Select one of the four MVGC2 orders and fit that LWR VAR model.
+
+    Returns the selected order, fitted coefficients/covariance/residuals, and
+    all four candidate orders for inspection. LRT may select order zero.
+    """
+    candidates = tsdata_to_varmo(x, pmax, regmode=regmode, alpha=alpha)
+    order = candidates.select(criterion)
+    fit = tsdata_to_var(x, order, regmode=regmode)
+    return SelectedVAR(criterion.upper(), order, candidates, fit)

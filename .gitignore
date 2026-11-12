@@ -11,6 +11,7 @@ dist/
 # Local analysis outputs
 figures/
 outputs/
+multiscale/validation/PARITY.md
 
 # OS files
 .DS_Store

@@ -2,12 +2,12 @@
 
 *For studying what a system does together that its parts do not do alone.*
 
-A Python home for two complementary ways of studying emergence in time series. **Synergy is ready to use.** **Multiscale is under construction**—the dynamical independence engine is still in the workshop. 🔧
+A Python home for two complementary ways of studying emergence in time series. **Synergy is ready to use.** **Multiscale is under construction**—its first standalone dynamical independence engine is in place and being expanded. 🔧
 
 | Module | What it covers | Status |
 |:--|:--|:--|
 | [**Synergy**](synergy/) | ΦID computation, subject summaries, group statistics, and figures | ✅ Ready |
-| [**Multiscale**](multiscale/) | Dynamical independence across scales | 🚧 In progress |
+| [**Multiscale**](multiscale/) | MVGC LWR model fitting, temporal DI, and spectral SSDI optimization | 🧪 First engine validated |
 
 The project is designed for data from different modalities and cohorts. Your nodes can be fMRI regions, EEG channels, or another consistent set of signals; your groups can have whatever names your study needs.
 
@@ -20,6 +20,10 @@ python -m pip install -e './synergy[analysis]'
 ```
 
 The core ΦID engine alone has a lighter install: `python -m pip install -e ./synergy`. For accelerated pairwise calculations, add the `fast` extra. The retained AAL90 DoC figure workflow uses the `doc` extra and separate atlas assets.
+
+To use Multiscale, install `python -m pip install ./multiscale`.
+Its [guide](multiscale/README.md) shows the two-stage optimization and the
+MATLAB parity script. MATLAB is not required to run the installed Python package.
 
 ### A small working example
 
@@ -68,11 +72,12 @@ emergence-toolkit/
 ├── synergy/             ΦID engine + general analysis, statistics, plotting
 │   ├── notebooks/        runnable quickstart
 │   └── src/synergy/      installable Python package
-└── multiscale/          dynamical independence (under construction)
+└── multiscale/          standalone temporal and spectral DI package
 ```
 
 Synergy computes the 16 ΦID atoms and offers MMI/CCS pairwise matrices. Its general analysis accepts arbitrary group and node labels; the original DoC analysis and cortical figures remain available as a dataset-specific preset. The ΦID computation was originally extracted from Pedro Mediano's MATLAB toolboxes.
 
 ## License
 
-[MIT](synergy/LICENSE) · © 2026 Borjan Milinkovic
+Synergy: [MIT](synergy/LICENSE). Multiscale: [GPL-3.0](multiscale/LICENSE)
+because its numerical path adapts MVGC2. © 2026 Borjan Milinkovic.
