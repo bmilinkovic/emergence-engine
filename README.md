@@ -82,6 +82,15 @@ for you (tempting as that would be).
 
 ## Papers behind this project
 
+- **Barnett, L., & Seth, A. K.** (2023). “Dynamical independence:
+  Discovering emergent macroscopic processes in complex dynamical systems.”
+  *Physical Review E, 108*, 014304.
+  [doi:10.1103/PhysRevE.108.014304](https://doi.org/10.1103/PhysRevE.108.014304).
+- **Mediano, P. A. M., Rosas, F. E., Luppi, A. I., Carhart-Harris, R. L.,
+  Bor, D., Seth, A. K., & Barrett, A. B.** (2025). “Toward a unified taxonomy
+  of information dynamics via Integrated Information Decomposition.”
+  *Proceedings of the National Academy of Sciences, 122*(39), e2423297122.
+  [doi:10.1073/pnas.2423297122](https://doi.org/10.1073/pnas.2423297122).
 - **Milinkovic, B., Barnett, L., Carter, O., Seth, A. K., & Andrillon, T.**
   (2025). “Capturing the emergent dynamical structure in biophysical neural
   models.” *PLOS Computational Biology, 21*(5), e1012572.
