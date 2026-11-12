@@ -12,12 +12,6 @@ dist/
 figures/
 outputs/
 multiscale/validation/PARITY.md
-
-# Local manuscript drafts
-/paper.md
-/paper.tex
-/paper.bib
-/paper.pdf
 /paper/
 
 # OS files
