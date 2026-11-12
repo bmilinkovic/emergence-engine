@@ -7,7 +7,7 @@ A Python home for two complementary ways of studying emergence in time series. *
 | Module | What it covers | Status |
 |:--|:--|:--|
 | [**Synergy**](synergy/) | ΦID computation, subject summaries, group statistics, and figures | ✅ Ready |
-| [**Multiscale**](multiscale/) | VAR fitting, temporal and spectral DD, and time-changing DD across recording windows | ✅ Usable |
+| [**Multiscale**](multiscale/) | VAR fitting, temporal and spectral DD, and time-changing DD across recording windows | ✅ Ready |
 
 The project is designed for data from different modalities and cohorts. Your nodes can be fMRI regions, EEG channels, or another consistent set of signals; your groups can have whatever names your study needs.
 
