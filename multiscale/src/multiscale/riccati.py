@@ -6,7 +6,8 @@ It deliberately does not call a generic discrete-ARE wrapper.
 """
 
 import numpy as np
-from scipy.linalg import lu, ordqz, qr
+from scipy.linalg import (cholesky, ordqz, qr, solve_discrete_lyapunov,
+                          solve_triangular)
 
 
 def mdare(a, c, q, r=None, s=None):
@@ -29,7 +30,8 @@ def mdare(a, c, q, r=None, s=None):
     projected_j = basis[:, obs:].T @ j[:, :2*dim]
     jj, hh, alpha, beta, _, z = ordqz(projected_j, projected_h,
                                         sort="ouc", output="real")
-    eigen = alpha/beta
+    with np.errstate(divide="ignore", invalid="ignore"):
+        eigen = alpha/beta
     outside = np.abs(eigen) > 1
     if not np.all(outside[:dim]) or np.any(outside[dim:]):
         return None, None, -1.0, None
@@ -48,11 +50,54 @@ def mdare(a, c, q, r=None, s=None):
     return k, v, float(rep), p
 
 
-def iss2dd(l, a, c, k):
-    """Temporal DI for an innovations SS with identity covariance."""
+def covariance_balance_iss(a, c, k):
+    """Similarity transform to unit stationary state covariance.
+
+    This changes only the state coordinates. The input-output process and
+    innovations covariance are identical, while the companion realization's
+    very large state covariance no longer degrades the QZ DARE residual.
+    """
+    a, c, k = np.asarray(a, float), np.asarray(c, float), np.asarray(k, float)
+    sigma = solve_discrete_lyapunov(a, k @ k.T)
+    sigma = (sigma + sigma.T) / 2
+    root = cholesky(sigma, lower=True)
+    balanced_a = solve_triangular(root, a @ root, lower=True)
+    balanced_c = c @ root
+    balanced_k = solve_triangular(root, k, lower=True)
+    return balanced_a, balanced_c, balanced_k
+
+
+def iss2dd(l, a, c, k, *, return_diagnostics=False):
+    """Temporal DI from the ordered-QZ DARE, with state-coordinate fallback.
+
+    The original SSDI/MVGC2 call is tried first. If its residual fails the
+    SSDI threshold, a stationary-covariance Cholesky similarity transform is
+    applied and the same ``mdare`` routine is called again. Set
+    ``return_diagnostics=True`` to also get the method and both residuals.
+    """
+    l = np.asarray(l, float)
     q = k @ k.T
-    _, v, rep, _ = mdare(a, l.T @ c, q, np.eye(l.shape[1]), k @ l)
+    try:
+        _, v, rep, _ = mdare(a, l.T @ c, q, np.eye(l.shape[1]), k @ l)
+    except (np.linalg.LinAlgError, ValueError):
+        rep, v = -3.0, None
+    original_rep = rep
+    method = "original"
     if rep < 0 or rep > 1e-8:
-        return float("nan")
-    sign, value = np.linalg.slogdet(v)
-    return float(value) if sign > 0 else float("nan")
+        try:
+            ba, bc, bk = covariance_balance_iss(a, c, k)
+            _, v, rep, _ = mdare(ba, l.T @ bc, bk @ bk.T,
+                                 np.eye(l.shape[1]), bk @ l)
+            method = "covariance_balanced"
+        except (np.linalg.LinAlgError, ValueError):
+            rep, v = -3.0, None
+            method = "failed"
+    value = float("nan")
+    if v is not None and 0 <= rep <= 1e-8:
+        sign, logdet = np.linalg.slogdet(v)
+        if sign > 0:
+            value = float(logdet)
+    if return_diagnostics:
+        return value, {"method": method, "original_residual": float(original_rep),
+                       "residual": float(rep)}
+    return value

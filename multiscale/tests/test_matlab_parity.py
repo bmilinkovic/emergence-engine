@@ -9,12 +9,15 @@ from multiscale import (canonical_band_objective_and_grad, canonical_band_value,
                         canonical_opt_dds_mruns, iss2dd, opt_gd_ddx_mruns, prepare_var,
                         trfun2dd, trfun2ddgrad, opt_gd_dds_mruns,
                         tsdata_to_var, tsdata_to_varmo, fit_var_auto,
-                        run_grid_parallel)
+                        run_grid_parallel, opt_es_dd, opt_es_dd_mruns,
+                        run_full_dd, es_parms)
 from multiscale.model import orthonormalise
 
 
 F = loadmat(Path(__file__).parent / "fixtures" / "matlab_canonical.mat",
             simplify_cells=True)
+ES = loadmat(Path(__file__).parent / "fixtures" / "matlab_temporal_es.mat",
+             simplify_cells=True)
 
 
 def _projector_error(left, right):
@@ -31,6 +34,55 @@ def test_model_transform_and_transfer_function():
 def test_temporal_qz_matches_matlab():
     actual = iss2dd(F["Lfinal"][:, :, 0], F["ASS"], F["C"], F["K"])
     assert abs(actual-F["ddtime"]) < 1e-11
+
+
+def test_temporal_dare_recovers_from_ill_conditioned_state_coordinates():
+    a, c, k = F["ASS"], F["C"], F["K"]
+    scale = np.diag(10.0**np.linspace(-6, 6, a.shape[0]))
+    transformed_a = np.linalg.solve(scale, a @ scale)
+    transformed_c = c @ scale
+    transformed_k = np.linalg.solve(scale, k)
+    value, diagnostics = iss2dd(F["Lfinal"][:, :, 0], transformed_a,
+                                transformed_c, transformed_k,
+                                return_diagnostics=True)
+    assert diagnostics["method"] == "covariance_balanced"
+    assert diagnostics["residual"] < 1e-8
+    assert abs(value-F["ddtime"]) < 1e-11
+
+
+def test_direct_state_space_es_matches_matlab_trajectory():
+    np.testing.assert_allclose(
+        es_parms(float(ES["rule"]), ES["L0"].shape[1] *
+                 (ES["L0"].shape[0]-ES["L0"].shape[1])), ES["factors"], atol=1e-15)
+    result = opt_es_dd(ES["A"], ES["C"], ES["K"], ES["L0"],
+                       maxiters=int(ES["maxiters"]), sig=float(ES["sig0"]),
+                       esrule=ES["factors"], tol=float(ES["tol"]),
+                       mutations=ES["mutations"], history=True,
+                       prebalance=False)
+    assert abs(result.value-ES["dopt"]) < 1e-12
+    assert result.iterations == ES["iters"]
+    assert result.converged == ES["conv"]
+    assert abs(result.step_size-ES["sig"]) < 1e-12
+    np.testing.assert_allclose(result.history, ES["dhist"], atol=1e-12)
+    assert _projector_error(result.basis, ES["Lopt"]) < 1e-12
+
+
+def test_full_dd_pipeline_exposes_both_actual_methods():
+    result = run_full_dd(F["VARA"], F["V"], int(F["fs"]), int(F["fres"]),
+                         F["L0"], final_method="both", pre_iters=5,
+                         spectral_iters=5, state_space_iters=5, seed=3)
+    assert "pre" in result and "spectral" in result and "state_space" in result
+    assert np.isfinite(result["spectral"].values).all()
+    assert np.isfinite(result["state_space"].values).all()
+
+
+def test_direct_state_space_es_parallel_matches_serial():
+    kwargs = dict(a=F["ASS"], c=F["C"], k=F["K"], initial=F["L0"],
+                  maxiters=7, seed=3)
+    serial = opt_es_dd_mruns(**kwargs, workers=1)
+    parallel = opt_es_dd_mruns(**kwargs, workers=2)
+    np.testing.assert_allclose(serial.values, parallel.values, atol=1e-12)
+    np.testing.assert_allclose(serial.bases, parallel.bases, atol=1e-12)
 
 
 def test_canonical_gradient_is_derivative_of_value():

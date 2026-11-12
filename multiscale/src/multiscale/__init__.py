@@ -7,6 +7,8 @@ from .riccati import mdare, iss2dd
 from .integrated import trfun2dd, trfun2ddgrad, opt_gd_dds_mruns
 from .fit import tsdata_to_var, tsdata_to_varmo, fit_var_auto, VARFit, VARModelOrder, SelectedVAR
 from .parallel import run_grid_parallel
+from .temporal import es_parms, opt_es_dd, opt_es_dd_mruns
+from .pipeline import run_full_dd
 
 __all__ = ["prepare_var", "sfreqs", "ss2trfun", "canonical_band_objective_and_grad",
            "canonical_band_value",
@@ -14,4 +16,5 @@ __all__ = ["prepare_var", "sfreqs", "ss2trfun", "canonical_band_objective_and_gr
            "run_two_stage", "random_initial_bases", "mdare", "iss2dd",
            "trfun2dd", "trfun2ddgrad", "opt_gd_dds_mruns",
            "tsdata_to_var", "tsdata_to_varmo", "fit_var_auto", "VARFit",
-           "VARModelOrder", "SelectedVAR", "run_grid_parallel"]
+           "VARModelOrder", "SelectedVAR", "run_grid_parallel",
+           "es_parms", "opt_es_dd", "opt_es_dd_mruns", "run_full_dd"]
