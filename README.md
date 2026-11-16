@@ -1,12 +1,15 @@
-# Emergence Engine
-
 <p align="center">
-  <img src="assets/EE_boids.png" alt="Emergence Engine wordmark encircled by a flock of blue boids" width="760">
+  <img src="assets/EE_boids.png" alt="Emergence Engine wordmark encircled by a flock of blue boids" width="100%">
 </p>
 
-*For studying what a system does together that its parts do not do alone.*
+<p align="center">
+  <em>For studying what a system does together that its parts do not do alone.</em><br>
+  <a href="#multiscale-emergence">Multiscale</a> ·
+  <a href="#synergy">Synergy</a> ·
+  <a href="#cite-this-toolbox">Citation</a>
+</p>
 
-**Explore:** [Multiscale](#multiscale-emergence) · [Synergy](#synergy) · [Citation](#cite-this-toolbox)
+---
 
 Emergence can be studied from two complementary directions. **Multiscale** asks
 whether a lower-dimensional description has dynamics that are partly
