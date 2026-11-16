@@ -11,16 +11,17 @@
 
 ---
 
-Emergence can be studied from two complementary directions. **Multiscale** asks
-whether a lower-dimensional description has dynamics that are partly
-independent of the underlying system. **Synergy** asks what information parts
-carry jointly across time that no part carries alone. Both standalone Python
-packages live here under one roof and are ready to use.
+Emergence Engine brings two standalone Python packages together to study
+emergence in time-series data. Both work with your preprocessed signals, and
+each has a short notebook to help you begin.
 
-| Package | The question it asks | Status |
-|:--|:--|:--|
-| [**Multiscale**](multiscale/) | Which macroscopic variables are dynamically independent of their microscopic basis? | ✅ Ready |
-| [**Synergy**](synergy/) | What do parts of a system tell us together about its future? | ✅ Ready |
+## Explore the engine
+
+![Two ways to study emergence: multiscale dynamics and joint information](assets/engine-map.svg)
+
+| **Multiscale** | **Synergy** |
+|:--|:--|
+| [Read the guide](multiscale/README.md) · [Open the quickstart](multiscale/notebooks/quickstart.ipynb) | [Read the guide](synergy/README.md) · [Open the quickstart](synergy/notebooks/quickstart.ipynb) |
 
 ## Multiscale emergence
 
