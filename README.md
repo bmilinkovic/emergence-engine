@@ -25,7 +25,47 @@ each has a short notebook to help you begin.
 | Find macroscopic variables whose dynamics are relatively independent of the microscopic system. | Decompose information carried jointly by variables into redundant, unique, and synergistic contributions. |
 | [Read the guide](multiscale/README.md) · [Open the quickstart](multiscale/notebooks/quickstart.ipynb) | [Read the guide](synergy/README.md) · [Open the quickstart](synergy/notebooks/quickstart.ipynb) |
 
-The [visualisation guide](VISUALISATION.md) describes figure colors and export formats.
+## Analyses and figures
+
+These examples come from a reproducible **six-node VAR(2) toy model**, analysed
+with the toolkit itself. Eight simulated subjects share their innovations
+across low- and high-coupling conditions. The plots show what the analysis
+functions produce; they are not empirical results or significance claims.
+Run [the showcase script](examples/build_showcase.py) to regenerate them, or
+open the [complete figure gallery](VISUALISATION.md) for more plots and the
+figure-function catalogue.
+
+### Multiscale · dynamical dependence
+
+Across frequency bands, compare how much dynamical dependence remains in the
+best coarse-grained variables. Each point is a fitted simulated recording;
+the horizontal marks show medians. [Open the PDF](assets/showcase/multiscale-dd.pdf).
+
+![DD distributions for low- and high-coupling VAR models across theta, alpha, and beta bands](assets/showcase/multiscale-dd.png)
+
+### Multiscale · changing dynamics
+
+Fit the VAR model and optimise DD separately in successive windows to trace
+the best one-, two-, and three-dimensional macroscopic variables.
+[Open the PDF](assets/showcase/multiscale-windows.pdf).
+
+![Minimum DD across early, middle, and late windows in the simulated VAR model](assets/showcase/multiscale-windows.png)
+
+### Synergy · information atoms
+
+Decompose lagged information for pairs of nodes, then compare the distribution
+of synergistic, redundant, and balance summaries for MMI and CCS estimators.
+[Open the PDF](assets/showcase/synergy-atoms.pdf).
+
+![Synergy, redundancy, and balance distributions from pairwise Phi-ID on simulated VAR signals](assets/showcase/synergy-atoms.png)
+
+### Synergy · regional gradients
+
+The nodal map ranks each node's synergy against its redundancy, showing how
+the spatial pattern differs between estimators and coupling conditions.
+[Open the PDF](assets/showcase/synergy-nodes.pdf).
+
+![Node-wise synergy minus redundancy rank heatmap for MMI and CCS](assets/showcase/synergy-nodes.png)
 
 ## Multiscale emergence
 
