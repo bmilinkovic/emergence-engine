@@ -63,8 +63,7 @@ def plot_atom_pairs(result: AnalysisResult, *, measure: str = "mean_edge",
         tests = inference.paired_similarity if inference is not None else pd.DataFrame()
         test_filter = lambda f: f.loc[f.reference.eq(reference)] if "reference" in f else f
     fig, axes = plt.subplots(len(result.methods), 1, squeeze=False,
-                            figsize=(max(7, 1.6*len(groups)+2), 3.8*len(result.methods)),
-                            constrained_layout=True)
+                            figsize=(max(8, 1.8*len(groups)+2), 4.6*len(result.methods)))
     for row, method in enumerate(result.methods):
         ax = axes[row, 0]
         subset = frame.loc[frame.method.eq(method) & frame.atom.isin(("rtr", "sts"))]
@@ -89,8 +88,9 @@ def plot_atom_pairs(result: AnalysisResult, *, measure: str = "mean_edge",
         finish_axes(ax)
     handles = [plt.Line2D([], [], marker="o", linestyle="", color=COLOURS[a],
                           label=ATOM_LABELS[a]) for a in ("rtr", "sts")]
+    fig.subplots_adjust(left=.16, right=.97, top=.82, bottom=.11, hspace=.48)
     fig.legend(handles=handles, loc="upper center", ncol=2,
-               bbox_to_anchor=(0.5, 1.025), frameon=False)
+               bbox_to_anchor=(.57, .99), frameon=False)
     return fig
 
 
@@ -100,8 +100,7 @@ def plot_global_atoms(result: AnalysisResult, *, group_order: Sequence[str] | No
     groups = _groups(result, group_order)
     atoms = ("sts", "rtr", "balance")
     fig, axes = plt.subplots(len(result.methods), len(atoms), squeeze=False,
-                            figsize=(max(10, 1.15*len(groups)*3), 3.6*len(result.methods)),
-                            constrained_layout=True)
+                            figsize=(max(13, 1.6*len(groups)*3), 5.0*len(result.methods)))
     for row, method in enumerate(result.methods):
         for col, atom in enumerate(atoms):
             ax = axes[row, col]
@@ -117,10 +116,14 @@ def plot_global_atoms(result: AnalysisResult, *, group_order: Sequence[str] | No
                 jitter = np.random.default_rng(0).uniform(-.08, .08, len(values))
                 ax.scatter(i + jitter, values, s=15, alpha=.45, color=COLOURS[atom])
                 ax.plot([i-.14, i+.14], [np.median(values)]*2, color=INK, lw=2)
-            ax.set_title(f"{method.upper()} · {ATOM_LABELS[atom]}")
-            ax.set_xticks(range(len(groups)), groups, rotation=30, ha="right")
+            ax.set_title(f"{method.upper()}\n{ATOM_LABELS[atom]}")
+            ax.set_xticks(range(len(groups)), groups,
+                          rotation=30 if len(groups) > 3 else 0,
+                          ha="right" if len(groups) > 3 else "center")
             finish_axes(ax)
             if col == 0: ax.set_ylabel("Mean edge value (nats)")
+    fig.subplots_adjust(left=.11, right=.98, top=.91, bottom=.12,
+                        hspace=.75, wspace=.38)
     return fig
 
 
@@ -132,7 +135,7 @@ def plot_system_gradients(result: AnalysisResult, *, group_order: Sequence[str] 
     groups = _groups(result, group_order)
     systems = tuple(dict.fromkeys(result.node_systems))
     fig, axes = plt.subplots(len(result.methods), len(groups), squeeze=False,
-                            figsize=(max(5, 2.5*len(groups)), 3.6*len(result.methods)),
+                            figsize=(max(8, 4.0*len(groups)), 4.4*len(result.methods)),
                             sharey=True, constrained_layout=True)
     for row, method in enumerate(result.methods):
         for col, group in enumerate(groups):
@@ -150,8 +153,8 @@ def plot_system_gradients(result: AnalysisResult, *, group_order: Sequence[str] 
                     ax.scatter(i + jitter, values, s=10, alpha=.35, color="#2E4057")
             ax.axhline(0, color=MUTED, lw=.8)
             ax.set_title(f"{method.upper()} · {group}")
-            ax.set_xticks(range(len(systems)), systems, rotation=65, ha="right", fontsize=8)
-            if col == 0: ax.set_ylabel("Synergy − redundancy rank")
+            ax.set_xticks(range(len(systems)), systems, rotation=65, ha="right")
+            if col == 0: ax.set_ylabel("Synergy −\nredundancy rank")
             finish_axes(ax)
     return fig
 
@@ -176,9 +179,9 @@ def plot_node_gradients(result: AnalysisResult, *, group_order: Sequence[str] | 
                 matrix[i, int(j)] = values.value.mean()
         im = ax.imshow(matrix, aspect="auto", cmap="RdBu_r", vmin=-limit, vmax=limit)
         ax.set_yticks(range(len(groups)), groups)
-        ax.set_xticks(range(len(result.node_labels)), result.node_labels, rotation=75, ha="right", fontsize=8)
+        ax.set_xticks(range(len(result.node_labels)), result.node_labels, rotation=75, ha="right")
         ax.set_title(f"{method.upper()} · mean node gradient", loc="left")
-        finish_axes(ax, grid=None)
+        finish_axes(ax)
     fig.colorbar(im, ax=axes[:, 0].tolist(), shrink=.75, label="Rank difference")
     return fig
 
@@ -210,10 +213,10 @@ def plot_regional_effects(result: AnalysisResult, inference: InferenceResult, *,
         ax.text(j, i, "*", ha="center", va="center", color="white", fontsize=12,
                 path_effects=[patheffects.withStroke(linewidth=2, foreground=INK)])
     ax.set_yticks(range(len(groups)), groups)
-    ax.set_xticks(range(len(result.node_labels)), result.node_labels, rotation=75, ha="right", fontsize=8)
+    ax.set_xticks(range(len(result.node_labels)), result.node_labels, rotation=75, ha="right")
     ax.set_title(f"{method.upper()} · {metric}: group − {result.reference_group}")
     fig.colorbar(im, ax=ax, shrink=.8, label="Effect")
-    finish_axes(ax, grid=None)
+    finish_axes(ax)
     return fig
 
 

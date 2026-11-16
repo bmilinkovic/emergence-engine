@@ -1,8 +1,8 @@
 # Visualisation
 
-Emergence Engine figures use a common publication style: quiet axes, light
-reference grids, legible labels, and vector-friendly exports. The colors still
-carry the same scientific meanings as before.
+Emergence Engine figures use large publication typography, open backgrounds
+without grid lines, and vector-friendly exports. The colors retain their
+scientific meanings.
 
 | Figure family | Color meaning | Default exports |
 |:--|:--|:--|
@@ -15,22 +15,8 @@ anatomical and atom palettes. They are a separate, dataset-specific workflow.
 
 The general plotting APIs apply their style only while a figure is built or
 saved. Calling one figure function does not change the Matplotlib settings of
-the rest of a notebook. The dataset-specific DoC command uses its own plotting
-process and style.
-
-## Figure examples
-
-These examples use **synthetic data** to show the output style; they are not
-scientific results. Rebuild them with
-[`examples/build_figure_gallery.py`](examples/build_figure_gallery.py).
-
-**Multiscale · dynamical dependence by frequency band**
-
-![Teal and violet violin plots of synthetic dynamical dependence across three bands](assets/figure-examples/multiscale-dd.svg)
-
-**Synergy · redundancy and synergy by group**
-
-![Blue redundancy and red synergy estimates from synthetic subject matrices](assets/figure-examples/synergy-atoms.svg)
+the rest of a notebook. The dataset-specific DoC command keeps its original
+figure layouts and colors.
 
 ## Make a Multiscale figure
 

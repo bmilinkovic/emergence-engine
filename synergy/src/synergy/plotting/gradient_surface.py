@@ -14,7 +14,6 @@ os.environ.setdefault("XDG_CACHE_HOME", str(Path(tempfile.gettempdir()) / "syner
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from .figure_style import styled
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Polygon
@@ -159,7 +158,6 @@ def _plot_one_cell(
     return ax_l, ax_r
 
 
-@styled
 def render_surface_panel(
     *,
     data_root: Path,

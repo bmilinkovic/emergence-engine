@@ -10,16 +10,15 @@ import matplotlib as mpl
 
 INK = "#24343A"
 MUTED = "#64777B"
-GRID = "#DEE7E7"
 PAPER = "#FFFFFF"
 ATOM_COLOURS = {"rtr": "#2E5EAA", "sts": "#D43D2A", "balance": "#8A5A44"}
 
 RC = {
     "font.family": "DejaVu Sans",
-    "font.size": 11,
-    "axes.titlesize": 14,
+    "font.size": 16,
+    "axes.titlesize": 20,
     "axes.titleweight": "semibold",
-    "axes.labelsize": 11,
+    "axes.labelsize": 19,
     "axes.labelcolor": INK,
     "axes.edgecolor": MUTED,
     "axes.linewidth": 0.8,
@@ -31,8 +30,11 @@ RC = {
     "text.color": INK,
     "xtick.color": MUTED,
     "ytick.color": MUTED,
-    "grid.color": GRID,
-    "grid.linewidth": 0.8,
+    "xtick.labelsize": 17,
+    "ytick.labelsize": 17,
+    "legend.fontsize": 18,
+    "legend.title_fontsize": 18,
+    "axes.grid": False,
     "pdf.fonttype": 42,
     "svg.fonttype": "none",
 }
@@ -47,9 +49,7 @@ def styled(function):
     return wrapped
 
 
-def finish_axes(ax, *, grid: str | None = "y") -> None:
+def finish_axes(ax) -> None:
     ax.spines[["top", "right"]].set_visible(False)
-    ax.tick_params(length=0, pad=6)
-    if grid is not None:
-        ax.grid(axis=grid)
-        ax.set_axisbelow(True)
+    ax.tick_params(length=0, pad=7)
+    ax.grid(False)

@@ -90,7 +90,7 @@ def plot_dd_violin_by_macro(dd, stats, output, *, conditions=None,
                 star = _stars(float(match.iloc[0].q))
                 if star:
                     ax.text(bi, .96, star, transform=ax.get_xaxis_transform(),
-                            ha="center", va="top", fontsize=16, weight="bold")
+                            ha="center", va="top", fontsize=22, weight="bold")
         ax.set_title(f"{m}-Macro")
         ax.set_xticks(range(len(bands)), [GREEK.get(b, b) for b in bands])
         finish_axes(ax)
@@ -128,7 +128,7 @@ def plot_dd_grand_average(dd, grand_stats, output, *,
     finish_axes(ax)
     labels = labels or conditions
     ax.legend([plt.Line2D([], [], marker="o", linestyle="", color=c)
-               for c in colours], labels, frameon=False, fontsize=13)
+               for c in colours], labels, frameon=False)
     fig.tight_layout()
     return _save(fig, output)
 
@@ -164,7 +164,7 @@ def plot_sf_index(sf, stats, output, *, conditions=None,
                 star = _stars(float(match.iloc[0].q))
                 if star:
                     ax.text(m, .96, star, transform=ax.get_xaxis_transform(),
-                            ha="center", va="top", fontsize=15, weight="bold")
+                            ha="center", va="top", fontsize=22, weight="bold")
         ax.set_title(GREEK.get(band, band))
         ax.set_xticks(mvals)
         ax.set_ylim(-.03, 1.04)
@@ -198,17 +198,17 @@ def plot_similarity_matrices(matrices, output, *, conditions=None,
                     ax.imshow(np.mean(eligible, axis=0), cmap="bone_r",
                               vmin=0, vmax=1, interpolation="nearest")
                     ax.text(.97, .02, f"n={len(eligible)}", ha="right", va="bottom",
-                            transform=ax.transAxes, fontsize=8)
+                            transform=ax.transAxes, fontsize=16)
                 else:
                     ax.set_facecolor("#f3f3f3")
                 ax.set_xticks([])
                 ax.set_yticks([])
                 if ri == 0:
-                    ax.set_title(f"{cond}\n{GREEK.get(band, band)}", fontsize=12)
+                    ax.set_title(f"{cond}\n{GREEK.get(band, band)}", fontsize=18)
                 if ci == 0 and bi == 0:
-                    ax.set_ylabel(f"{m}-Macro", fontsize=13)
-                finish_axes(ax, grid=None)
-    fig.suptitle("Mean run similarity distance (top 40 DD solutions)", fontsize=16)
+                    ax.set_ylabel(f"{m}-Macro", fontsize=18)
+                finish_axes(ax)
+    fig.suptitle("Mean run similarity distance (top 40 DD solutions)", fontsize=24)
     fig.tight_layout()
     return _save(fig, output)
 
@@ -236,9 +236,9 @@ def plot_timewindow_dd(dd, output, *, baseline, baseline_label=None, windows=Non
             ax.set_xticks([-.2, .2], [baseline_label, window], rotation=25)
             finish_axes(ax)
             if ri == 0:
-                ax.set_title(GREEK.get(band, band), fontsize=18)
+                ax.set_title(GREEK.get(band, band), fontsize=22)
             if ci == 0:
-                ax.set_ylabel(f"{window}\nDD", fontsize=12)
+                ax.set_ylabel(f"{window}\nDD", fontsize=18)
     fig.tight_layout()
     return _save(fig, output)
 
@@ -263,9 +263,9 @@ def plot_timewindow_sf(sf, output, *, baseline, windows=None):
             ax.set_xticks(sorted(sub.m.unique()))
             finish_axes(ax)
             if ri == 0:
-                ax.set_title(GREEK.get(band, band), fontsize=18)
+                ax.set_title(GREEK.get(band, band), fontsize=22)
             if ci == 0:
-                ax.set_ylabel(f"{window}\nSF index", fontsize=12)
+                ax.set_ylabel(f"{window}\nSF index", fontsize=18)
     fig.tight_layout()
     return _save(fig, output)
 
@@ -332,7 +332,7 @@ def plot_pairwise_heatmap(grand_stats, states, output, *, ylabel=None):
         ax.set_title(GREEK.get(band, band))
         ax.set_xticks(range(n), states, rotation=45, ha="right")
         ax.set_yticks(range(n), states)
-        finish_axes(ax, grid=None)
+        finish_axes(ax)
     if ylabel:
         axes[0, 0].set_ylabel(ylabel)
     fig.colorbar(im, ax=axes, shrink=.55, label="Mean difference (column − row)")
@@ -367,6 +367,9 @@ def plot_time_changing_dd(window_table, output, *, ylabel="Minimum DD"):
         ax.set_xticks(range(len(windows)), windows, rotation=30, ha="right")
         finish_axes(ax)
     axes[0, 0].set_ylabel(ylabel)
-    axes[0, -1].legend(title="Macro dimension", frameon=False)
-    fig.tight_layout()
+    handles, labels = axes[0, -1].get_legend_handles_labels()
+    fig.legend(handles, labels, title="Macro dimension", frameon=False,
+               loc="upper center", bbox_to_anchor=(.5, .99),
+               ncol=min(len(labels), 4))
+    fig.tight_layout(rect=(0, 0, 1, .80))
     return _save(fig, output)
