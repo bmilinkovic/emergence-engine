@@ -1,10 +1,18 @@
 # Emergence Engine
 
+<p align="center">
+  <img src="assets/EE_boids.png" alt="Emergence Engine wordmark encircled by a flock of blue boids" width="760">
+</p>
+
 *For studying what a system does together that its parts do not do alone.*
 
-Emergence can be approached from two directions. **Multiscale** asks whether a
-lower-dimensional description of a system has dynamics that are, to some
-degree, its independent and closed from the microlevel constituents. **Synergy** asks what information is carried jointly by parts of a system across time, that cannot be measured uniquely. The two standalone Python packages live here under one roof. Both are ready to use; the wider project is still growing. 🔧
+**Explore:** [Multiscale](#multiscale-emergence) · [Synergy](#synergy) · [Citation](#cite-this-toolbox)
+
+Emergence can be studied from two complementary directions. **Multiscale** asks
+whether a lower-dimensional description has dynamics that are partly
+independent of the underlying system. **Synergy** asks what information parts
+carry jointly across time that no part carries alone. Both standalone Python
+packages live here under one roof and are ready to use.
 
 | Package | The question it asks | Status |
 |:--|:--|:--|
