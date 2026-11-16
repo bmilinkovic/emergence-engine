@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <em>For studying what a system does together that its parts do not do alone.</em><br>
+  <em>Two complementary questions about emergence in complex dynamics.</em><br>
   <a href="#multiscale-emergence">Multiscale</a> ·
   <a href="#synergy">Synergy</a> ·
   <a href="#cite-this-toolbox">Citation</a>
@@ -21,13 +21,15 @@ each has a short notebook to help you begin.
 
 | **Multiscale** | **Synergy** |
 |:--|:--|
+| **Which coarse-grained variables emerge in high-dimensional dynamics?** | **What information do wholes carry that their parts alone do not?** |
+| Find macroscopic variables whose dynamics are relatively independent of the microscopic system. | Decompose information carried jointly by variables into redundant, unique, and synergistic contributions. |
 | [Read the guide](multiscale/README.md) · [Open the quickstart](multiscale/notebooks/quickstart.ipynb) | [Read the guide](synergy/README.md) · [Open the quickstart](synergy/notebooks/quickstart.ipynb) |
 
 The [visualisation guide](VISUALISATION.md) describes figure colors and export formats.
 
 ## Multiscale emergence
 
-**Which coarse-grained variables emerge from high-dimensional dynamics?** A
+**Which coarse-grained variables emerge in high-dimensional dynamics?** A
 macroscopic variable can be constructed from many microscopic signals. If
 its own past predicts its future almost as well as the full system's past, it
 has a degree of **dynamical independence** (DI). The toolbox searches for such
