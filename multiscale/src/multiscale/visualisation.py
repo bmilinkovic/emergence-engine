@@ -5,7 +5,10 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib import patheffects
 import numpy as np
+
+from .figure_style import INK, MUTED, finish_axes, styled
 
 
 DEFAULT_COLOURS = ("#2EC4B6", "#5E60CE")
@@ -32,6 +35,7 @@ def _save(fig, stem):
     stem.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
     fig.savefig(stem.with_suffix(".png"), dpi=220, bbox_inches="tight")
+    fig.savefig(stem.with_suffix(".svg"), bbox_inches="tight")
     plt.close(fig)
     return stem.with_suffix(".pdf")
 
@@ -53,12 +57,14 @@ def _violin(ax, datasets, positions, colours, *, width=.3):
             body.set_facecolor(colour)
             body.set_edgecolor("none")
             body.set_alpha(.42)
-        ax.scatter(np.full(len(v), pos), v, s=10, alpha=.32, color=colour,
+        jitter = np.random.default_rng(0).uniform(-width*.18, width*.18, len(v))
+        ax.scatter(pos + jitter, v, s=12, alpha=.34, color=colour,
                    edgecolors="none", rasterized=True)
         ax.plot([pos-width*.28, pos+width*.28], [np.median(v)]*2,
-                color=colour, lw=2)
+                color=INK, lw=2.2, zorder=4)
 
 
+@styled
 def plot_dd_violin_by_macro(dd, stats, output, *, conditions=None,
                             labels=None, colours=DEFAULT_COLOURS, colors=None):
     """Condition distributions with one panel per macro dimension."""
@@ -85,10 +91,9 @@ def plot_dd_violin_by_macro(dd, stats, output, *, conditions=None,
                 if star:
                     ax.text(bi, .96, star, transform=ax.get_xaxis_transform(),
                             ha="center", va="top", fontsize=16, weight="bold")
-        ax.set_title(f"{m}-Macro", fontsize=19)
-        ax.set_xticks(range(len(bands)), [GREEK.get(b, b) for b in bands], fontsize=17)
-        ax.grid(axis="y", alpha=.2)
-        ax.set_axisbelow(True)
+        ax.set_title(f"{m}-Macro")
+        ax.set_xticks(range(len(bands)), [GREEK.get(b, b) for b in bands])
+        finish_axes(ax)
     for ax in list(axes.flat)[len(mvals):]:
         ax.axis("off")
     axes[0, 0].set_ylabel("Minimum dynamical dependence")
@@ -98,6 +103,7 @@ def plot_dd_violin_by_macro(dd, stats, output, *, conditions=None,
     return _save(fig, output)
 
 
+@styled
 def plot_dd_grand_average(dd, grand_stats, output, *,
                           conditions=None, labels=None,
                           colours=DEFAULT_COLOURS, colors=None):
@@ -117,10 +123,9 @@ def plot_dd_grand_average(dd, grand_stats, output, *,
             if star:
                 ax.text(bi, .97, star, transform=ax.get_xaxis_transform(),
                         ha="center", va="top", fontsize=22, weight="bold")
-    ax.set_xticks(range(len(bands)), [GREEK.get(b, b) for b in bands], fontsize=24)
-    ax.set_ylabel("Dynamical dependence", fontsize=22)
-    ax.grid(axis="y", alpha=.2)
-    ax.set_axisbelow(True)
+    ax.set_xticks(range(len(bands)), [GREEK.get(b, b) for b in bands])
+    ax.set_ylabel("Dynamical dependence")
+    finish_axes(ax)
     labels = labels or conditions
     ax.legend([plt.Line2D([], [], marker="o", linestyle="", color=c)
                for c in colours], labels, frameon=False, fontsize=13)
@@ -128,6 +133,7 @@ def plot_dd_grand_average(dd, grand_stats, output, *,
     return _save(fig, output)
 
 
+@styled
 def plot_sf_index(sf, stats, output, *, conditions=None,
                   labels=None, colours=DEFAULT_COLOURS, colors=None):
     """SF index by macro dimension and band, with subject trajectories."""
@@ -159,10 +165,10 @@ def plot_sf_index(sf, stats, output, *, conditions=None,
                 if star:
                     ax.text(m, .96, star, transform=ax.get_xaxis_transform(),
                             ha="center", va="top", fontsize=15, weight="bold")
-        ax.set_title(GREEK.get(band, band), fontsize=25)
+        ax.set_title(GREEK.get(band, band))
         ax.set_xticks(mvals)
         ax.set_ylim(-.03, 1.04)
-        ax.grid(alpha=.2)
+        finish_axes(ax)
         ax.set_xlabel("Macro dimension")
     axes[0, 0].set_ylabel("Structure-fragmentation index")
     labels = labels or conditions
@@ -172,6 +178,7 @@ def plot_sf_index(sf, stats, output, *, conditions=None,
     return _save(fig, output)
 
 
+@styled
 def plot_similarity_matrices(matrices, output, *, conditions=None,
                              bands=None, dimensions=None, top_k=40):
     """Show mean run-distance matrices for each condition, band, and dimension."""
@@ -200,11 +207,13 @@ def plot_similarity_matrices(matrices, output, *, conditions=None,
                     ax.set_title(f"{cond}\n{GREEK.get(band, band)}", fontsize=12)
                 if ci == 0 and bi == 0:
                     ax.set_ylabel(f"{m}-Macro", fontsize=13)
+                finish_axes(ax, grid=None)
     fig.suptitle("Mean run similarity distance (top 40 DD solutions)", fontsize=16)
     fig.tight_layout()
     return _save(fig, output)
 
 
+@styled
 def plot_timewindow_dd(dd, output, *, baseline, baseline_label=None, windows=None,
                        colours=DEFAULT_COLOURS, colors=None):
     """Four-window by five-band DD comparison, using paired subject rows."""
@@ -225,7 +234,7 @@ def plot_timewindow_dd(dd, output, *, baseline, baseline_label=None, windows=Non
             pair = av.to_frame("a").join(bv.to_frame("b"), how="inner")
             _violin(ax, [pair.a, pair.b], [-.2, .2], colours, width=.34)
             ax.set_xticks([-.2, .2], [baseline_label, window], rotation=25)
-            ax.grid(axis="y", alpha=.2)
+            finish_axes(ax)
             if ri == 0:
                 ax.set_title(GREEK.get(band, band), fontsize=18)
             if ci == 0:
@@ -234,6 +243,7 @@ def plot_timewindow_dd(dd, output, *, baseline, baseline_label=None, windows=Non
     return _save(fig, output)
 
 
+@styled
 def plot_timewindow_sf(sf, output, *, baseline, windows=None):
     """Four-window by five-band SF trajectories across macro dimensions."""
     windows = windows or list(dict.fromkeys(sf.window))
@@ -251,7 +261,7 @@ def plot_timewindow_sf(sf, output, *, baseline, windows=None):
                 ax.plot(means.index, means.to_numpy(), "-o", color=colour, lw=2)
             ax.set_ylim(0, 1)
             ax.set_xticks(sorted(sub.m.unique()))
-            ax.grid(alpha=.2)
+            finish_axes(ax)
             if ri == 0:
                 ax.set_title(GREEK.get(band, band), fontsize=18)
             if ci == 0:
@@ -260,6 +270,7 @@ def plot_timewindow_sf(sf, output, *, baseline, windows=None):
     return _save(fig, output)
 
 
+@styled
 def plot_state_trajectory(state_table, value, states, output, *, ylabel=None):
     """Subject paths and group mean ± SEM across ordered states, by band."""
     bands = _bands(state_table.band)
@@ -272,23 +283,24 @@ def plot_state_trajectory(state_table, value, states, output, *, ylabel=None):
         pivot = sub.pivot(index="subject", columns="state", values=value)
         for _, row in pivot.iterrows():
             y = np.array([row.get(state, np.nan) for state in states])
-            ax.plot(range(len(states)), y, color="#888888", alpha=.22, lw=.7)
+            ax.plot(range(len(states)), y, color=MUTED, alpha=.22, lw=.7)
         summary = sub.groupby("state")[value].agg(["mean", "std", "count"])
         y = np.array([summary.loc[state, "mean"] if state in summary.index
                       else np.nan for state in states])
         sem = np.array([summary.loc[state, "std"] / np.sqrt(summary.loc[state, "count"])
                         if state in summary.index else np.nan for state in states])
-        ax.plot(range(len(states)), y, "-o", color="#151515", lw=2.4)
+        ax.plot(range(len(states)), y, "-o", color=INK, lw=2.4)
         ax.fill_between(range(len(states)), y-sem, y+sem,
-                        color="#151515", alpha=.14)
-        ax.set_title(GREEK.get(band, band), fontsize=24)
+                        color=INK, alpha=.14)
+        ax.set_title(GREEK.get(band, band))
         ax.set_xticks(range(len(states)), states, rotation=28, ha="right")
-        ax.grid(axis="y", alpha=.2)
+        finish_axes(ax)
     axes[0, 0].set_ylabel(ylabel or value)
     fig.tight_layout()
     return _save(fig, output)
 
 
+@styled
 def plot_pairwise_heatmap(grand_stats, states, output, *, ylabel=None):
     """Upper-triangle mean state differences with BH-significant stars."""
     bands = _bands(grand_stats.band)
@@ -314,10 +326,13 @@ def plot_pairwise_heatmap(grand_stats, states, output, *, ylabel=None):
             for j in range(i+1, n):
                 if np.isfinite(q[i, j]) and q[i, j] <= .05:
                     ax.text(j, i, "★", ha="center", va="center",
-                            color="#F4C542", fontsize=22)
-        ax.set_title(GREEK.get(band, band), fontsize=24)
+                            color="#F4C542", fontsize=22,
+                            path_effects=[patheffects.withStroke(linewidth=2,
+                                                                 foreground=INK)])
+        ax.set_title(GREEK.get(band, band))
         ax.set_xticks(range(n), states, rotation=45, ha="right")
         ax.set_yticks(range(n), states)
+        finish_axes(ax, grid=None)
     if ylabel:
         axes[0, 0].set_ylabel(ylabel)
     fig.colorbar(im, ax=axes, shrink=.55, label="Mean difference (column − row)")
@@ -325,6 +340,7 @@ def plot_pairwise_heatmap(grand_stats, states, output, *, ylabel=None):
     return _save(fig, output)
 
 
+@styled
 def plot_time_changing_dd(window_table, output, *, ylabel="Minimum DD"):
     """Show how best DD changes across named windows for each dimension.
 
@@ -349,7 +365,7 @@ def plot_time_changing_dd(window_table, output, *, ylabel="Minimum DD"):
             ax.plot(range(len(windows)), y, "-o", label=f"m={m}")
         ax.set_title(GREEK.get(band, band))
         ax.set_xticks(range(len(windows)), windows, rotation=30, ha="right")
-        ax.grid(axis="y", alpha=.2)
+        finish_axes(ax)
     axes[0, 0].set_ylabel(ylabel)
     axes[0, -1].legend(title="Macro dimension", frameon=False)
     fig.tight_layout()

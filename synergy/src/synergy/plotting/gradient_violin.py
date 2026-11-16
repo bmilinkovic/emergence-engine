@@ -23,6 +23,7 @@ import nibabel as nib
 from nilearn import datasets, plotting
 import numpy as np
 import pandas as pd
+from .figure_style import styled
 
 COHORT_ORDER = ["control", "emcs", "mcs", "uws", "coma"]
 COHORT_DISPLAY = {
@@ -166,6 +167,7 @@ def _star(q: float) -> str:
     return ""
 
 
+@styled
 def render_violin_grid(
     *,
     subject_macro_csv: Path,

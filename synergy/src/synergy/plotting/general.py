@@ -3,14 +3,19 @@ from __future__ import annotations
 from pathlib import Path
 import re
 from typing import Sequence
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib import patheffects
 import numpy as np
 import pandas as pd
 from ..analysis.workflow import AnalysisResult
 from ..statistics.inference import InferenceResult
+from .figure_style import ATOM_COLOURS, INK, MUTED, RC, finish_axes, styled
 
-COLOURS = {"rtr": "#2E5EAA", "sts": "#D43D2A", "balance": "#8A5A44"}
+COLOURS = ATOM_COLOURS
 COLORS = COLOURS  # Backward compatible public name.
+ATOM_LABELS = {"rtr": "Redundancy (RTR)", "sts": "Synergy (STS)",
+               "balance": "Balance"}
 
 
 def _groups(result: AnalysisResult, order: Sequence[str] | None) -> tuple[str, ...]:
@@ -29,13 +34,15 @@ def save_figure(fig: plt.Figure, output: Path, *, formats=("png", "pdf", "svg"))
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     paths = []
-    for fmt in formats:
-        path = output.with_suffix("." + fmt)
-        fig.savefig(path, dpi=260 if fmt == "png" else None, bbox_inches="tight")
-        paths.append(path)
+    with mpl.rc_context(RC):
+        for fmt in formats:
+            path = output.with_suffix("." + fmt)
+            fig.savefig(path, dpi=260 if fmt == "png" else None, bbox_inches="tight")
+            paths.append(path)
     return paths
 
 
+@styled
 def plot_atom_pairs(result: AnalysisResult, *, measure: str = "mean_edge",
                     reference: str | None = None, inference: InferenceResult | None = None,
                     group_order: Sequence[str] | None = None) -> plt.Figure:
@@ -67,7 +74,8 @@ def plot_atom_pairs(result: AnalysisResult, *, measure: str = "mean_edge",
                 if not len(values):
                     continue
                 x = i + offset
-                ax.scatter(np.full(len(values), x), values, color=COLOURS[atom], alpha=0.35, s=12)
+                jitter = np.random.default_rng(0).uniform(-.045, .045, len(values))
+                ax.scatter(x + jitter, values, color=COLOURS[atom], alpha=0.35, s=15)
                 ax.errorbar(x, values.mean(), yerr=(values.std(ddof=1)/np.sqrt(len(values)) if len(values)>1 else 0),
                             fmt="o", color=COLOURS[atom], markeredgecolor="white", ms=9, capsize=3, lw=2)
             if len(tests):
@@ -78,13 +86,15 @@ def plot_atom_pairs(result: AnalysisResult, *, measure: str = "mean_edge",
         ax.set_title(method.upper(), loc="left", weight="bold")
         ax.set_xticks(range(len(groups)), groups)
         ax.set_ylabel("Spearman ρ" if reference is not None else measure.replace("_", " "))
-        ax.spines[["top", "right"]].set_visible(False)
-        ax.grid(axis="y", alpha=.18)
-    handles = [plt.Line2D([], [], marker="o", linestyle="", color=COLOURS[a], label=a.upper()) for a in ("rtr", "sts")]
-    fig.legend(handles=handles, loc="upper right")
+        finish_axes(ax)
+    handles = [plt.Line2D([], [], marker="o", linestyle="", color=COLOURS[a],
+                          label=ATOM_LABELS[a]) for a in ("rtr", "sts")]
+    fig.legend(handles=handles, loc="upper center", ncol=2,
+               bbox_to_anchor=(0.5, 1.025), frameon=False)
     return fig
 
 
+@styled
 def plot_global_atoms(result: AnalysisResult, *, group_order: Sequence[str] | None = None) -> plt.Figure:
     """Violin distributions of global RTR, STS, and balance by group."""
     groups = _groups(result, group_order)
@@ -104,15 +114,17 @@ def plot_global_atoms(result: AnalysisResult, *, group_order: Sequence[str] | No
                     violin = ax.violinplot([values], positions=[i], widths=.65, showextrema=False)
                     for body in violin["bodies"]:
                         body.set_facecolor(COLOURS[atom]); body.set_alpha(.2)
-                ax.scatter(np.full(len(values), i), values, s=12, alpha=.45, color=COLOURS[atom])
-                ax.plot([i-.14, i+.14], [np.median(values)]*2, color="#263238", lw=2)
-            ax.set_title(f"{method.upper()} · {atom.upper()}")
+                jitter = np.random.default_rng(0).uniform(-.08, .08, len(values))
+                ax.scatter(i + jitter, values, s=15, alpha=.45, color=COLOURS[atom])
+                ax.plot([i-.14, i+.14], [np.median(values)]*2, color=INK, lw=2)
+            ax.set_title(f"{method.upper()} · {ATOM_LABELS[atom]}")
             ax.set_xticks(range(len(groups)), groups, rotation=30, ha="right")
-            ax.spines[["top", "right"]].set_visible(False)
+            finish_axes(ax)
             if col == 0: ax.set_ylabel("Mean edge value (nats)")
     return fig
 
 
+@styled
 def plot_system_gradients(result: AnalysisResult, *, group_order: Sequence[str] | None = None) -> plt.Figure:
     """Gradient violins for user-provided node systems; no atlas is assumed."""
     if result.node_systems is None or result.systems.empty:
@@ -133,15 +145,18 @@ def plot_system_gradients(result: AnalysisResult, *, group_order: Sequence[str] 
                     violin = ax.violinplot([values], positions=[i], widths=.7, showextrema=False)
                     for body in violin["bodies"]:
                         body.set_facecolor("#4C78A8"); body.set_alpha(.35)
-                if len(values): ax.scatter(np.full(len(values), i), values, s=8, alpha=.35, color="#2E4057")
-            ax.axhline(0, color="#777", lw=.8)
+                if len(values):
+                    jitter = np.random.default_rng(0).uniform(-.08, .08, len(values))
+                    ax.scatter(i + jitter, values, s=10, alpha=.35, color="#2E4057")
+            ax.axhline(0, color=MUTED, lw=.8)
             ax.set_title(f"{method.upper()} · {group}")
             ax.set_xticks(range(len(systems)), systems, rotation=65, ha="right", fontsize=8)
             if col == 0: ax.set_ylabel("Synergy − redundancy rank")
-            ax.spines[["top", "right"]].set_visible(False)
+            finish_axes(ax)
     return fig
 
 
+@styled
 def plot_node_gradients(result: AnalysisResult, *, group_order: Sequence[str] | None = None) -> plt.Figure:
     """Heatmaps of mean nodal gradients for arbitrary regions or EEG channels."""
     groups = _groups(result, group_order)
@@ -163,10 +178,12 @@ def plot_node_gradients(result: AnalysisResult, *, group_order: Sequence[str] | 
         ax.set_yticks(range(len(groups)), groups)
         ax.set_xticks(range(len(result.node_labels)), result.node_labels, rotation=75, ha="right", fontsize=8)
         ax.set_title(f"{method.upper()} · mean node gradient", loc="left")
-        fig.colorbar(im, ax=ax, shrink=.7, label="Rank difference")
+        finish_axes(ax, grid=None)
+    fig.colorbar(im, ax=axes[:, 0].tolist(), shrink=.75, label="Rank difference")
     return fig
 
 
+@styled
 def plot_regional_effects(result: AnalysisResult, inference: InferenceResult, *,
                           method: str, metric: str = "balance") -> plt.Figure:
     """Heatmap of group-minus-reference effects for every node."""
@@ -190,11 +207,13 @@ def plot_regional_effects(result: AnalysisResult, inference: InferenceResult, *,
                            constrained_layout=True)
     im = ax.imshow(matrix, aspect="auto", cmap="RdBu_r", vmin=-limit, vmax=limit)
     for i, j in zip(*np.where(q < .05)):
-        ax.text(j, i, "*", ha="center", va="center", color="black", fontsize=12)
+        ax.text(j, i, "*", ha="center", va="center", color="white", fontsize=12,
+                path_effects=[patheffects.withStroke(linewidth=2, foreground=INK)])
     ax.set_yticks(range(len(groups)), groups)
     ax.set_xticks(range(len(result.node_labels)), result.node_labels, rotation=75, ha="right", fontsize=8)
     ax.set_title(f"{method.upper()} · {metric}: group − {result.reference_group}")
     fig.colorbar(im, ax=ax, shrink=.8, label="Effect")
+    finish_axes(ax, grid=None)
     return fig
 
 

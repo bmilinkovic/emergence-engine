@@ -155,7 +155,9 @@ run-similarity matrices. It uses British spellings such as
 `summarize_*` names remain available for existing scripts.
 `multiscale.statistics` provides paired Wilcoxon tests,
 Benjamini–Hochberg correction, and descriptive pooled comparisons.
-`multiscale.visualisation` saves publication figures as PDF and PNG.
+`multiscale.visualisation` saves publication figures as PDF, PNG, and SVG.
+The [visualisation guide](../VISUALISATION.md) documents the shared figure style
+and the meaning of the default colors.
 
 ```python
 from multiscale.analysis import summarise_grid_results

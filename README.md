@@ -23,9 +23,12 @@ each has a short notebook to help you begin.
 |:--|:--|
 | [Read the guide](multiscale/README.md) · [Open the quickstart](multiscale/notebooks/quickstart.ipynb) | [Read the guide](synergy/README.md) · [Open the quickstart](synergy/notebooks/quickstart.ipynb) |
 
+The [visualisation guide](VISUALISATION.md) describes figure colors and export formats.
+
 ## Multiscale emergence
 
-A macroscopic variable can be constructed from many microscopic signals. If
+**Which coarse-grained variables emerge from high-dimensional dynamics?** A
+macroscopic variable can be constructed from many microscopic signals. If
 its own past predicts its future almost as well as the full system's past, it
 has a degree of **dynamical independence** (DI). The toolbox searches for such
 variables by minimising **dynamical dependence** (DD) across dimensions. It
@@ -58,7 +61,8 @@ and figures, install `./multiscale[plots]`.
 
 ## Synergy
 
-Synergy looks at information shared by collections of variables across time.
+**What information do wholes carry that their parts alone do not?** Synergy
+looks at information shared by collections of variables across time.
 Its ΦID engine decomposes information into 16 atoms, including redundant,
 unique, and synergistic contributions. The package also has general subject
 summaries, group statistics, and figures. Your cohorts and node labels can be

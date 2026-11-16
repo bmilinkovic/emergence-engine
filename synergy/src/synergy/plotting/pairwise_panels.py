@@ -4,11 +4,11 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from .figure_style import ATOM_COLOURS, styled
 COHORT_ORDER = ["control", "emcs", "mcs", "uws", "coma"]
 COHORT_DISPLAY = {"control":"CNTL","emcs":"EMCS","mcs":"MCS","uws":"UWS","coma":"COMA"}
 METHOD_ORDER = ["mmi","ccs"]
 METHOD_LABELS = {"mmi":"MMI","ccs":"CCS"}
-ATOM_COLOURS = {"rtr":"#2E5EAA","sts":"#D43D2A"}
 ATOM_COLORS = ATOM_COLOURS  # Backward compatible public name.
 
 def _set_style() -> None:
@@ -64,6 +64,7 @@ def _add_bracket(ax: plt.Axes, x0: float, x1: float, y: float, text: str, colour
     ax.text((x0 + x1) / 2.0, y + h + 0.008 * yr, text, ha="center", va="bottom", fontsize=14, fontweight="bold", color=colour)
 
 
+@styled
 def _plot_similarity_paired(
     subject_df: pd.DataFrame,
     stats_df: pd.DataFrame,
@@ -129,6 +130,7 @@ def _plot_similarity_paired(
     _save_figure(fig, out_dir, stem)
 
 
+@styled
 def _plot_graph_paired(
     graph_df: pd.DataFrame,
     stats_df: pd.DataFrame,
