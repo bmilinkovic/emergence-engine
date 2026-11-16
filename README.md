@@ -110,6 +110,23 @@ unique, and synergistic contributions. The package also has general subject
 summaries, group statistics, and figures. Your cohorts and node labels can be
 whatever your study needs.
 
+**Ways to compute ΦID**
+
+| Measure | Discrete states | Continuous signals (Gaussian) |
+|:--|:--:|:--:|
+| MMI | ✓ | ✓ |
+| CCS | ✓ | ✓ |
+| Shared exclusions (`Iτ-sx`) | ✓ | ✗ |
+| Proposed two-sided Gaussian SX extension | ✗ | ✓ Experimental |
+
+✓ means the measure is implemented; ✗ means it is unavailable for that input
+type. The Gaussian SX extension is an exploratory implementation with a
+specified scale convention, not a continuous version of the established
+discrete `Iτ-sx` measure. The [Synergy guide](synergy/README.md#phi_id-engine)
+shows the exact API calls, input requirements, and units. Full decompositions
+accept either a `variables × time` series or four explicit past/future arrays;
+`pairwise_atoms` computes continuous MMI and CCS matrices across many nodes.
+
 ```bash
 python -m pip install './synergy[analysis]'
 ```

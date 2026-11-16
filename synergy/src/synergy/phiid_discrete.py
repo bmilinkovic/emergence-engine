@@ -22,7 +22,9 @@ def phiid_full_discrete(
 ) -> PhiIDResult:
     """Compute discrete PhiID for either TD-series or explicit 4-vector inputs.
 
-    Supported measures in this Python port: `MMI`, `CCS`.
+    Supported measures: `MMI`, `CCS`, and Varley's shared-exclusions `SX`.
+    `SX` requires integer-coded discrete states and returns values in bits;
+    continuous data must be discretized explicitly before calling it.
     """
     if len(args) == 1:
         x = np.asarray(args[0])
@@ -74,6 +76,8 @@ def _td_phiid_discrete(
         raise ValueError("tau must be a positive integer.")
     if d < 2 or t - tau < 2:
         raise ValueError("Need at least two variables and two lagged samples.")
+    if measure.lower() == "sx" and not is_discrete(x):
+        raise ValueError("SX requires discrete states; discretize continuous data explicitly.")
 
     bx = _binarify(x)
     p1, p2 = (minimum_information_partition(bx, tau=tau, kind="discrete")
@@ -115,8 +119,10 @@ def _four_vector_discrete(
         raise ValueError("Need at least two samples.")
 
     measure_key = measure.lower()
-    if measure_key not in {"mmi", "ccs"}:
-        raise NotImplementedError("Only 'MMI' and 'CCS' are implemented in this Python port.")
+    if measure_key not in {"mmi", "ccs", "sx"}:
+        raise NotImplementedError("Only 'MMI', 'CCS', and 'SX' are implemented in this Python port.")
+    if measure_key == "sx" and any(not is_discrete(np.asarray(value)) for value in (x1, x2, y1, y2)):
+        raise ValueError("SX requires discrete states; discretize continuous data explicitly.")
 
     b_x = np.vstack(
         [
@@ -126,6 +132,11 @@ def _four_vector_discrete(
             _as_single_discrete_var(y2),
         ]
     )
+
+    if measure_key == "sx":
+        from .shared_exclusions import phiid_shared_exclusions
+
+        return phiid_shared_exclusions(b_x, return_local=return_local)
 
     ixta = local_mi_discrete(b_x, [0], [2])
     ixtb = local_mi_discrete(b_x, [0], [3])

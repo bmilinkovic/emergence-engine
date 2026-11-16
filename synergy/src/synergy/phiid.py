@@ -82,7 +82,9 @@ def phiid_full(
     Notes:
     - If no partition is supplied, a normalised effective-
       information MIB is selected by exhaustive search.
-    - `measure` currently supports `CCS` and `MMI`.
+    - `measure` supports `CCS`, `MMI`, and experimental `SX_GAUSSIAN`.
+      The latter requires two scalar variables on each side, standardizes
+      their scales, and applies a proposed two-sided continuous SX extension.
     """
     if len(args) == 1:
         x = np.asarray(args[0], dtype=float)
@@ -153,9 +155,15 @@ def _four_vector_phiid(
         raise ValueError("Need more samples than the joint variable dimension.")
 
     measure_key = measure.lower()
+    if measure_key == "sx_gaussian":
+        from .gaussian_shared_exclusions import phiid_gaussian_shared_exclusions
+
+        return phiid_gaussian_shared_exclusions(
+            x1, x2, y1, y2, return_local=return_local
+        )
     if measure_key not in {"ccs", "mmi"}:
         raise NotImplementedError(
-            "Only 'CCS' and 'MMI' are currently implemented in this Python port."
+            "Only 'CCS', 'MMI', and experimental 'SX_GAUSSIAN' are implemented."
         )
 
     x = np.vstack([x1, x2, y1, y2])
