@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+"""Render Markdown as a readable local page in the default browser."""
+
+import argparse
+import hashlib
+import html
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from urllib.parse import unquote, urlsplit
+import webbrowser
+
+
+STYLE = """
+<style>
+  :root { color-scheme: light; }
+  html { scroll-behavior: smooth; }
+  body { max-width: 1120px; margin: 0 auto; padding: 4rem 5vw 7rem;
+         color: #202b32; background: #fafaf7; font: 18px/1.72 -apple-system,
+         BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  h1, h2, h3 { color: #173e49; line-height: 1.24; letter-spacing: -.025em; }
+  h1 { font-size: clamp(2.4rem, 5vw, 4.1rem); margin: 0 0 1.4rem;
+       padding-bottom: 1.2rem; border-bottom: 5px solid #4c8e8b; }
+  h2 { font-size: 2rem; margin-top: 3.2rem; padding-bottom: .35rem;
+       border-bottom: 1px solid #d3dedb; }
+  h3 { font-size: 1.4rem; margin-top: 2rem; }
+  p, li { max-width: 78ch; }
+  a { color: #136d78; text-underline-offset: .16em; }
+  a:hover { color: #a45d37; }
+  strong { color: #173e49; }
+  table { display: block; overflow-x: auto; border-collapse: collapse;
+          width: max-content; max-width: 100%; margin: 1.8rem 0; font-size: .94em; }
+  th, td { padding: .7rem .9rem; border-bottom: 1px solid #d5deda;
+           text-align: left; vertical-align: top; }
+  th { background: #e5efec; color: #173e49; font-weight: 700; }
+  tr:nth-child(even) { background: #f1f5f2; }
+  pre { overflow-x: auto; padding: 1.2rem 1.4rem; border-radius: 8px;
+        background: #eaf0ee; font-size: .88em; line-height: 1.5; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  :not(pre) > code { background: #eaf0ee; padding: .12em .32em; border-radius: 3px; }
+  blockquote { margin-left: 0; padding: .3rem 1.2rem; border-left: 4px solid #4c8e8b;
+               background: #edf4f1; }
+  .math.display { overflow-x: auto; overflow-y: hidden; padding: .35rem 0; }
+  .mermaid { overflow-x: auto; white-space: pre; margin: 2rem 0; text-align: center;
+             background: white; border: 1px solid #d3dedb; border-radius: 10px;
+             padding: 1.5rem; }
+  .mermaid svg { max-width: 100%; height: auto; }
+  img { max-width: 100%; height: auto; }
+  @media print { body { max-width: none; padding: 0; background: white; }
+                 h2, h3 { break-after: avoid; } pre, table, .mermaid { break-inside: avoid; } }
+</style>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', flowchart: { useMaxWidth: true } });
+</script>
+"""
+
+
+def localize_links(page: str, source: Path) -> str:
+    """Keep relative images and document links working from the temp page."""
+
+    def replace(match: re.Match[str]) -> str:
+        attribute, value = match.group(1), html.unescape(match.group(2))
+        parsed = urlsplit(value)
+        if not parsed.path or parsed.scheme or value.startswith(("#", "//", "/")):
+            return match.group(0)
+        target = (source.parent / unquote(parsed.path)).resolve()
+        url = target.as_uri()
+        if parsed.query:
+            url += "?" + parsed.query
+        if parsed.fragment:
+            url += "#" + parsed.fragment
+        return f'{attribute}="{html.escape(url, quote=True)}"'
+
+    return re.sub(r'\b(href|src)="([^"]+)"', replace, page)
+
+
+def render(source: Path) -> Path:
+    pandoc = shutil.which("pandoc")
+    if not pandoc:
+        raise RuntimeError("Pandoc is required. Install it with: brew install pandoc")
+    result = subprocess.run(
+        [pandoc, str(source), "--from=gfm+tex_math_dollars", "--to=html5",
+         "--standalone", "--mathjax"],
+        check=True, capture_output=True, text=True,
+    )
+    page = result.stdout.replace("</head>", STYLE + "\n</head>", 1)
+    page = re.sub(
+        r'<pre class="mermaid"><code>(.*?)</code></pre>',
+        lambda match: '<div class="mermaid">' + match.group(1) + '</div>',
+        page, flags=re.DOTALL,
+    )
+    page = localize_links(page, source)
+    preview_dir = Path(tempfile.gettempdir()) / "emergence-engine-markdown"
+    preview_dir.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(str(source).encode()).hexdigest()[:12]
+    output = preview_dir / f"{source.stem}-{digest}.html"
+    output.write_text(page, encoding="utf-8")
+    return output
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("markdown", type=Path, help="Markdown file to view")
+    parser.add_argument("--no-open", action="store_true", help="Render without opening a browser")
+    args = parser.parse_args()
+    source = args.markdown.expanduser().resolve()
+    if not source.is_file():
+        parser.error(f"File not found: {source}")
+    try:
+        output = render(source)
+    except (RuntimeError, subprocess.CalledProcessError) as error:
+        print(f"open-md: {error}", file=sys.stderr)
+        return 1
+    print(output.as_uri())
+    if not args.no_open and not webbrowser.open_new_tab(output.as_uri()):
+        print("Could not launch the browser; open the URL printed above.", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

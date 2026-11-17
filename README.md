@@ -19,6 +19,13 @@ each has a short notebook to help you begin.
 
 ![Two ways to study emergence: multiscale dynamics and joint information](assets/engine-map.svg)
 
+To read a Markdown guide with rendered equations and diagrams in your default
+browser, run this from the repository root (requires Pandoc):
+
+```bash
+./scripts/open-md multiscale/STATE_SPACE_FITTING.md
+```
+
 | **Multiscale** | **Synergy** |
 |:--|:--|
 | **Which coarse-grained variables emerge in high-dimensional dynamics?** | **What information do wholes carry that their parts alone do not?** |
