@@ -127,3 +127,19 @@ def prepare_var(a, v, fs, fres):
     transformed = transform_var(a, v)
     ass, c, k = var_to_ss(transformed)
     return ass, c, k, var_to_cak(transformed), var_to_trfun(transformed, fres), sfreqs(fres, fs)
+
+
+def prepare_ss(a, c, k, v, fs, fres):
+    """Whiten observation innovations for the existing DD objectives.
+
+    State coordinates are preserved; C -> R^-1 C, K -> K R for V=R R'.
+    """
+    a, c, k, v = (np.asarray(item, float) for item in (a, c, k, v))
+    r, n = a.shape[0], c.shape[0]
+    if a.shape != (r, r) or c.shape != (n, r) or k.shape != (r, n) or v.shape != (n, n):
+        raise ValueError("incompatible innovations state-space dimensions")
+    if max(abs(np.linalg.eigvals(a))) >= 1 or max(abs(np.linalg.eigvals(a-k@c))) >= 1:
+        raise ValueError("DD requires stable state and predictor dynamics")
+    root = cholesky(v, lower=True)
+    cw, kw = np.linalg.solve(root, c), k@root
+    return a, cw, kw, iss2cak(a, cw, kw), ss2trfun(a, cw, kw, fres), sfreqs(fres, fs)

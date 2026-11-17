@@ -20,3 +20,10 @@ __all__ = ["prepare_var", "sfreqs", "ss2trfun", "canonical_band_objective_and_gr
            "VARModelOrder", "SelectedVAR", "run_grid_parallel",
            "es_parms", "opt_es_dd", "opt_es_dd_mruns", "run_full_dd",
            "run_time_changing_dd", "minimum_dd_by_window", "WindowResult"]
+
+from .ss_fit import SSFit, SSModelOrder, tsdata_to_ss, tsdata_to_ssmo, fit_ss_auto
+from .model import prepare_ss
+from .pipeline import run_full_dd_ss
+
+__all__ += ["SSFit", "SSModelOrder", "tsdata_to_ss", "tsdata_to_ssmo",
+            "fit_ss_auto", "prepare_ss", "run_full_dd_ss"]

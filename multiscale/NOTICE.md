@@ -5,7 +5,8 @@ structure, documentation, and original additions in this repository.
 
 Core mathematical routines were translated and adapted from Lionel Barnett's
 SSDI and MVGC2 MATLAB toolboxes. In particular, the implementation follows
-their VAR fitting, state-space conversion, Riccati solver, proxy optimisation,
+their VAR fitting, direct CCA state-space fitting and SVC order selection,
+state-space conversion, Riccati solver, proxy optimisation,
 spectral integration, and subspace-clustering methods. The Grassmann-distance
 calculation also follows the Knyazev–Argentati small-angle method.
 

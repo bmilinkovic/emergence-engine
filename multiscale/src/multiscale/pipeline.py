@@ -3,7 +3,7 @@
 import numpy as np
 
 from .integrated import opt_gd_dds_mruns
-from .model import itransform_subspace, prepare_var
+from .model import itransform_subspace, prepare_var, prepare_ss
 from .optimise import opt_gd_ddx_mruns, cluster_representatives
 from .temporal import opt_es_dd_mruns
 
@@ -25,17 +25,30 @@ def run_full_dd(a, v, fs, fres, initial_bases, *,
     This is full-spectrum DD. For frequency-band canonical DD use
     ``run_two_stage`` or ``run_grid_parallel`` instead.
     """
+    return _run_prepared_dd(
+        prepare_var(a, v, fs, fres), v, initial_bases,
+        final_method=final_method, pre_iters=pre_iters,
+        spectral_iters=spectral_iters, state_space_iters=state_space_iters,
+        cluster_tol=cluster_tol, spectral_sig=spectral_sig,
+        state_space_sig=state_space_sig, es_rule=es_rule, seed=seed,
+        history=history, state_space_workers=state_space_workers)
+
+
+def _run_prepared_dd(prepared, v, initial_bases, *,
+                     final_method="spectral", pre_iters=10000,
+                     spectral_iters=1000, state_space_iters=100,
+                     cluster_tol=1e-10, spectral_sig=.1,
+                     state_space_sig=1e-4, es_rule=.2, seed=None,
+                     history=False, state_space_workers=1):
     methods = {"spectral", "state_space", "both", "spectral_then_state_space"}
     if final_method not in methods:
         raise ValueError(f"final_method must be one of {sorted(methods)}")
-    a, v, initial_bases = (np.asarray(a, float), np.asarray(v, float),
-                           np.asarray(initial_bases, float))
-    if initial_bases.ndim != 3 or initial_bases.shape[0] != a.shape[0]:
+    ass, c, k, cak, h, freqs = prepared
+    v, initial_bases = np.asarray(v, float), np.asarray(initial_bases, float)
+    if initial_bases.ndim != 3 or initial_bases.shape[0] != c.shape[0]:
         raise ValueError("initial bases must have shape (regions,m,runs)")
-    m = initial_bases.shape[1]
-    if not 1 <= m < a.shape[0]:
+    if not 1 <= initial_bases.shape[1] < c.shape[0]:
         raise ValueError("m must satisfy 1 <= m < regions")
-    ass, c, k, cak, h, freqs = prepare_var(a, v, fs, fres)
     pre = opt_gd_ddx_mruns(cak, initial_bases, niters=pre_iters,
                             history=history)
     original_pre = itransform_subspace(pre.bases, v)
@@ -61,3 +74,12 @@ def run_full_dd(a, v, fs, fres, initial_bases, *,
         out["state_space"] = state
         out["state_space_original_bases"] = itransform_subspace(state.bases, v)
     return out
+
+
+def run_full_dd_ss(fit, fs, fres, initial_bases, **kwargs):
+    """Run full-spectrum DD on a directly fitted SSFit innovations model.
+
+    Accepts the same optimisation options as run_full_dd.
+    """
+    return _run_prepared_dd(prepare_ss(fit.A, fit.C, fit.K, fit.V, fs, fres),
+                            fit.V, initial_bases, **kwargs)

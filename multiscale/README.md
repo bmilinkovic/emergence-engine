@@ -9,6 +9,21 @@ domain**, or within named recording windows to follow **time-changing DD**.
 The mathematical routines follow Lionel Barnett's SSDI and MVGC2 MATLAB
 implementations. The Python package needs no MATLAB installation.
 
+## Direct state-space fitting
+
+Fit an innovations model directly from `nodes × samples [× trials]` data:
+
+```python
+from multiscale import tsdata_to_ss
+fit = tsdata_to_ss(signals, pf=(10, 10), r=4)
+print(fit.diagnostics)
+```
+
+This CCA subspace estimator follows MVGC2. `fit_ss_auto` can use SVC to
+select state dimension and a VAR-AIC pilot to choose horizons. The
+[fitting guide](STATE_SPACE_FITTING.md) explains the complete procedure,
+notation, schematic, validation, and direct-SS DD entry point.
+
 ## Install
 
 ```bash

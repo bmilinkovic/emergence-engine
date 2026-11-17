@@ -74,7 +74,9 @@ macroscopic variable can be constructed from many microscopic signals. If
 its own past predicts its future almost as well as the full system's past, it
 has a degree of **dynamical independence** (DI). The toolbox searches for such
 variables by minimising **dynamical dependence** (DD) across dimensions. It
-fits VAR models and computes DD in the time domain, in frequency bands, or in
+fits VAR models or directly estimates innovations state-space models by CCA.
+The [state-space fitting guide](multiscale/STATE_SPACE_FITTING.md) explains the
+procedure, notation, and MVGC2 parity. It computes DD in the time domain, in frequency bands, or in
 successive recording windows to follow *time-changing DD*. It also describes
 the structure and fragmentation of the optimised solutions.
 
