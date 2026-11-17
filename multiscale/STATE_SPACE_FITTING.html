@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>STATE_SPACE_FITTING</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+  type="text/javascript"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+  :root { color-scheme: light; }
+  html { scroll-behavior: smooth; }
+  body { max-width: 1120px; margin: 0 auto; padding: 4rem 5vw 7rem;
+         color: #202b32; background: #fafaf7; font: 17px/1.75
+         "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  h1, h2, h3 { color: #173e49; line-height: 1.24; letter-spacing: -.025em; }
+  h1 { font-size: clamp(2.4rem, 5vw, 4.1rem); margin: 0 0 1.4rem;
+       padding-bottom: 1.2rem; border-bottom: 5px solid #4c8e8b; }
+  h2 { font-size: 2rem; margin-top: 3.2rem; padding-bottom: .35rem;
+       border-bottom: 1px solid #d3dedb; }
+  h3 { font-size: 1.4rem; margin-top: 2rem; }
+  p, li { max-width: 78ch; }
+  a { color: #136d78; text-underline-offset: .16em; }
+  a:hover { color: #a45d37; }
+  strong { color: #173e49; }
+  table { display: block; overflow-x: auto; border-collapse: collapse;
+          width: max-content; max-width: 100%; margin: 1.8rem 0; font-size: .94em; }
+  th, td { padding: .7rem .9rem; border-bottom: 1px solid #d5deda;
+           text-align: left; vertical-align: top; }
+  th { background: #e5efec; color: #173e49; font-weight: 700; }
+  tr:nth-child(even) { background: #f1f5f2; }
+  pre { overflow-x: auto; padding: 1.2rem 1.4rem; border-radius: 8px;
+        background: #eaf0ee; font-size: .88em; line-height: 1.5; }
+  code { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  :not(pre) > code { background: #eaf0ee; padding: .12em .32em; border-radius: 3px; }
+  blockquote { margin-left: 0; padding: .3rem 1.2rem; border-left: 4px solid #4c8e8b;
+               background: #edf4f1; }
+  .math.display { overflow-x: auto; overflow-y: hidden; padding: .35rem 0; }
+  .mermaid { overflow-x: auto; white-space: pre; margin: 2rem 0; text-align: center;
+             background: white; border: 1px solid #d3dedb; border-radius: 10px;
+             padding: 1.5rem; }
+  .mermaid svg { max-width: 100%; height: auto; }
+  img { max-width: 100%; height: auto; }
+  @media print { body { max-width: none; padding: 0; background: white; }
+                 h2, h3 { break-after: avoid; } pre, table, .mermaid { break-inside: avoid; } }
+</style>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', flowchart: { useMaxWidth: true } });
+</script>
+
+</head>
+<body>
+<h1 id="fitting-state-space-models-directly-from-time-series">Fitting
+state-space models directly from time series</h1>
+<p><strong>Which coarse-grained variables emerge in high-dimensional
+dynamics?</strong> Before we search for those variables, we need a model
+of the microscopic dynamics. We can now fit that model directly in
+innovations state-space form.</p>
+<p>Previously, this toolbox fitted a VAR and converted it into a
+companion state-space representation. The new <code>tsdata_to_ss</code>
+route estimates a latent state from the observed time series using
+MVGC2's canonical correlations analysis (CCA) subspace method. The
+existing VAR route remains available.</p>
+<h2 id="our-notation">Our notation</h2>
+<p>We distinguish the observed microscopic process, the fitted
+predictive state, and the macroscopic variable we later search for:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Symbol</th>
+<th style="text-align: left;">Meaning</th>
+<th style="text-align: left;">Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(X_t\)</span></td>
+<td style="text-align: left;">Centred microscopic observation at time
+<span class="math inline">\(t\)</span></td>
+<td style="text-align: left;"><span
+class="math inline">\(n\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(Z_t\)</span></td>
+<td style="text-align: left;">Latent predictive state fitted from past
+observations</td>
+<td style="text-align: left;"><span
+class="math inline">\(r\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(E_t\)</span></td>
+<td style="text-align: left;">Observation innovation</td>
+<td style="text-align: left;"><span
+class="math inline">\(n\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(V\)</span></td>
+<td style="text-align: left;">Innovation covariance</td>
+<td style="text-align: left;"><span class="math inline">\(n\times
+n\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(A,C,K\)</span></td>
+<td style="text-align: left;">State transition, observation,
+innovation-gain matrices</td>
+<td style="text-align: left;"><span class="math inline">\(r\times
+r\)</span>, <span class="math inline">\(n\times r\)</span>, <span
+class="math inline">\(r\times n\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(p,f\)</span></td>
+<td style="text-align: left;">Past and future CCA horizons, in
+samples</td>
+<td style="text-align: left;">Positive integers</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(q\)</span></td>
+<td style="text-align: left;">VAR order, when using a VAR pilot</td>
+<td style="text-align: left;">Nonnegative integer</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(L\)</span></td>
+<td style="text-align: left;">Projection defining a macroscopic
+variable</td>
+<td style="text-align: left;"><span class="math inline">\(n\times
+m\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\(Y_t=L^\top
+X_t\)</span></td>
+<td style="text-align: left;">Macroscopic observation</td>
+<td style="text-align: left;"><span
+class="math inline">\(m&lt;n\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The fitted innovations model is</p>
+<p><span class="math display">\[
+Z_{t+1}=AZ_t+KE_t,\qquad X_t=CZ_t+E_t,\qquad
+\operatorname{cov}(E_t)=V.
+\]</span></p>
+<p>The state dimension <span class="math inline">\(r\)</span> describes
+predictive memory. The macro dimension <span
+class="math inline">\(m\)</span> describes the coarse-grained
+observation we search for. These are different choices: the fitted state
+<span class="math inline">\(Z_t\)</span> is not itself evidence of an
+emergent macro. We assess dynamical independence when we subsequently
+optimise <span class="math inline">\(L\)</span>.</p>
+<p>The input array is <code>nodes × samples [× trials]</code>. “Direct
+from time series” means no fitted VAR is required when horizons are
+supplied. It does not mean that the estimator performs acquisition
+cleaning, artefact removal, or stationarity correction. Give it finite
+observations in a common node order.</p>
+<h2 id="from-an-original-state-space-model-to-innovations-form">From an
+original state-space model to innovations form</h2>
+<p>This derivation starts with a <strong>known</strong> linear
+stochastic model. It explains what the innovations parameters mean. The
+direct time-series fitter below does <strong>not</strong> first estimate
+<span class="math inline">\(F,H,Q,R,S\)</span> and then run this Riccati
+calculation.</p>
+<p>Let <span class="math inline">\(\xi_t\)</span> be a physical or
+mechanistic hidden state. Write the original model, with zero-mean
+disturbances white across time, as</p>
+<p><span class="math display">\[
+\xi_{t+1}=F\xi_t+W_t,\qquad X_t=H\xi_t+N_t,
+\qquad
+\operatorname{cov}\!\begin{pmatrix}W_t\\N_t\end{pmatrix}
+=\begin{pmatrix}Q&amp;S\\S^\top&amp;R\end{pmatrix}.
+\]</span></p>
+<p>The cross-covariance <span class="math inline">\(S\)</span> allows
+process and measurement disturbances at the <strong>same</strong> time
+to be correlated. If they are independent, <span
+class="math inline">\(S=0\)</span>. Let <span
+class="math inline">\(\mathcal I_{t-1}\)</span> be the observations
+strictly before <span class="math inline">\(t\)</span>, and define the
+optimal <strong>linear</strong> one-step predicted state and its error
+covariance by</p>
+<p><span class="math display">\[
+Z_t=\operatorname{Proj}_{\rm lin}(\xi_t\mid\mathcal I_{t-1}),\qquad
+\Pi=\operatorname{cov}(\xi_t-Z_t).
+\]</span></p>
+<p>For Gaussian disturbances this linear projection is the conditional
+mean.</p>
+<p>The innovation is the part of the current observation absent from
+that past:</p>
+<p><span class="math display">\[
+E_t=X_t-HZ_t=H(\xi_t-Z_t)+N_t,
+\qquad V=\operatorname{cov}(E_t)=H\Pi H^\top+R.
+\]</span></p>
+<p>Now predict the next hidden state. Before conditioning on <span
+class="math inline">\(E_t\)</span>, its error is <span
+class="math inline">\(F(\xi_t-Z_t)+W_t\)</span>. Its cross-covariance
+with <span class="math inline">\(E_t\)</span> is</p>
+<p><span class="math display">\[
+G=\operatorname{cov}\bigl(F(\xi_t-Z_t)+W_t,E_t\bigr)
+=F\Pi H^\top+S.
+\]</span></p>
+<p>Linear least-squares conditioning therefore adds <span
+class="math inline">\(G V^{-1}E_t\)</span> to the prediction. In the
+stationary case this gives</p>
+<p><span class="math display">\[
+K=GV^{-1},\qquad
+Z_{t+1}=FZ_t+KE_t,\qquad X_t=HZ_t+E_t.
+\]</span></p>
+<p>The conditional error covariance must reproduce itself one step
+later. This is the discrete algebraic Riccati equation:</p>
+<p><span class="math display">\[
+\boxed{\Pi=F\Pi F^\top+Q
+-(F\Pi H^\top+S)(H\Pi H^\top+R)^{-1}
+(F\Pi H^\top+S)^\top.}
+\]</span></p>
+<p>Solving its stabilising branch gives the innovations representation
+<span class="math inline">\((A,C,K,V)=(F,H,GV^{-1},H\Pi
+H^\top+R)\)</span>. The state <span class="math inline">\(Z_t\)</span>
+is a <strong>predictor</strong> of <span
+class="math inline">\(\xi_t\)</span>, rather than the physical state
+itself. Under the usual observability and noise conditions, <span
+class="math inline">\(E_t\)</span> is orthogonal to all earlier
+observations. With Gaussian disturbances it is also independent of
+them.</p>
+<h3 id="a-scalar-calculation-you-can-check-by-hand">A scalar calculation
+you can check by hand</h3>
+<p>Take <span class="math inline">\(F=0.7\)</span>, <span
+class="math inline">\(H=1\)</span>, <span
+class="math inline">\(Q=0.16\)</span>, <span
+class="math inline">\(R=0.09\)</span>, and <span
+class="math inline">\(S=0\)</span>. Starting at <span
+class="math inline">\(\Pi_0=0\)</span>, repeat the Riccati update</p>
+<p><span class="math display">\[
+\Pi_{j+1}=0.49\Pi_j+0.16
+-\frac{(0.7\Pi_j)^2}{\Pi_j+0.09}.
+\]</span></p>
+<p>The first iterates are <span
+class="math inline">\(\Pi_1=0.16\)</span>, <span
+class="math inline">\(\Pi_2=0.188224\)</span>, <span
+class="math inline">\(\Pi_3\approx0.189835\)</span>; the fixed point is
+<span class="math inline">\(\Pi\approx0.189921\)</span>. Consequently
+<span class="math inline">\(V=\Pi+0.09\approx0.279921\)</span> and <span
+class="math inline">\(K=0.7\Pi/V\approx0.474936\)</span>. The equivalent
+innovations equations are</p>
+<p><span class="math display">\[
+Z_{t+1}=0.7Z_t+0.474936E_t,\qquad
+X_t=Z_t+E_t,\qquad\operatorname{var}(E_t)=0.279921.
+\]</span></p>
+<p>The predictor matrix <span
+class="math inline">\(A-KC\approx0.225064\)</span> is stable. These
+numbers illustrate the <strong>known-model conversion</strong>;
+<code>tsdata_to_ss</code> instead learns its own predictive state from
+observations.</p>
+<p>The implemented Riccati solver reproduces the same numbers:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> multiscale <span class="im">import</span> mdare</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>F, H <span class="op">=</span> np.array([[<span class="fl">0.7</span>]]), np.array([[<span class="fl">1.0</span>]])</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>Q, R <span class="op">=</span> np.array([[<span class="fl">0.16</span>]]), np.array([[<span class="fl">0.09</span>]])</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>K, V, relative_residual, Pi <span class="op">=</span> mdare(F, H, Q, R)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Pi ≈ 0.189921; V ≈ 0.279921; K ≈ 0.474936</span></span></code></pre></div>
+<p><a href="src/multiscale/riccati.py"><code>mdare</code></a> uses
+MVGC2's extended matrix pencil: it builds its <span
+class="math inline">\(\mathcal H,\mathcal J\)</span> blocks from <span
+class="math inline">\((F,H,Q,R,S)\)</span>, deflates the observation
+block by QR, orders the generalised eigenvalues by QZ, and recovers
+<span class="math inline">\(\Pi\)</span> from the invariant subspace. It
+then computes <span class="math inline">\(G\)</span>, <span
+class="math inline">\(V\)</span>, and <span
+class="math inline">\(K\)</span> exactly as above and reports a relative
+Riccati residual. Thus the known-model calculation is implemented, while
+the <em>raw time-series fitting</em> path uses CCA and regression
+instead.</p>
+<h2 id="the-fitting-schematic">The fitting schematic</h2>
+<div class="mermaid">flowchart TD
+    X[&quot;Observed time series X: nodes × samples × trials&quot;] --&gt; D[&quot;Subtract each node&#39;s pooled mean; retain its scale&quot;]
+    H[&quot;Choose past horizon p and future horizon f&quot;] --&gt; B
+    D --&gt; B[&quot;Build within-trial past and future lag blocks&quot;]
+    B --&gt; W[&quot;Regress future on past; Cholesky-weight both sides&quot;]
+    W --&gt; S[&quot;SVD: canonical correlations and predictive directions&quot;]
+    S --&gt; R[&quot;Retain r directions: supplied r or MVGC2 SVC&quot;]
+    R --&gt; Z[&quot;Project past observations to estimated states Z&quot;]
+    Z --&gt; C[&quot;Fit C; calculate innovations E and covariance V&quot;]
+    C --&gt; A[&quot;Regress next state on current state and E to fit A and K&quot;]
+    A --&gt; Q[&quot;Check rank, innovation covariance, stability and residuals&quot;]
+    Q --&gt; M[&quot;Fitted innovations model: A, C, K, V&quot;]
+    M --&gt; DD[&quot;Whiten innovations, then search L for low-DD macroscopic variables&quot;]
+    P[&quot;Optional VAR-AIC pilot: choose q, set p = f = 2q&quot;] -.-&gt; H</div>
+<p>The upper derivation and this schematic answer different
+questions:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Starting point</th>
+<th style="text-align: left;">Calculation</th>
+<th style="text-align: left;">Result in this repository</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Known <span
+class="math inline">\((F,H,Q,R,S)\)</span></td>
+<td style="text-align: left;">Solve the stabilising Riccati
+equation</td>
+<td style="text-align: left;"><code>mdare(F, H, Q, R, S)</code> returns
+<span class="math inline">\((K,V,\text{residual},\Pi)\)</span>; retain
+<span class="math inline">\(A=F\)</span>, <span
+class="math inline">\(C=H\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;">Observations <span
+class="math inline">\(X_t\)</span> alone</td>
+<td style="text-align: left;">CCA subspace projection, then two
+least-squares fits</td>
+<td style="text-align: left;"><code>tsdata_to_ss(X, pf, r)</code>
+returns a fitted <code>SSFit</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Fitted VAR coefficients and innovation
+covariance</td>
+<td style="text-align: left;">Construct the exact companion
+realization</td>
+<td style="text-align: left;"><code>var_to_ss</code> and
+<code>prepare_var</code></td>
+</tr>
+</tbody>
+</table>
+<p>The CCA result is a predictive realization. Even when data came from
+a known physical state-space model, its <span
+class="math inline">\(Z_t\)</span> need not share that model's state
+coordinates. Similarity transforms <span
+class="math inline">\(Z&#39;_t=T Z_t\)</span> change the reported
+matrices to <span class="math inline">\((TAT^{-1},CT^{-1},TK,V)\)</span>
+without changing the observed process.</p>
+<h2 id="what-happens-at-each-step">What happens at each step</h2>
+<h3 id="1-centre-the-microscopic-observations">1. Centre the microscopic
+observations</h3>
+<p>For each node we subtract one mean pooled across time and trials. We
+do not standardise its variance. Trials are treated as repeated
+realisations of one process; no past or future block crosses a trial
+boundary. The fitted result stores <code>mean</code> so predictions can
+be returned to the original observation scale.</p>
+<h3 id="2-build-a-past-and-a-future-around-each-time-point">2. Build a
+past and a future around each time point</h3>
+<p>For a trial of length <span class="math inline">\(T\)</span>, the
+paired blocks are</p>
+<p><span class="math display">\[
+P_t=[X_{t-1}^\top,\ldots,X_{t-p}^\top]^\top,\qquad
+F_t=[X_t^\top,\ldots,X_{t+f-1}^\top]^\top.
+\]</span></p>
+<p>There are <span class="math inline">\(T-p-f+1\)</span> paired columns
+per trial. With <span class="math inline">\(N\)</span> trials, let <span
+class="math inline">\(M_h=N(T-p-f+1)\)</span>. We concatenate valid
+columns across trials, preserving MVGC2's ordering. The past block used
+to reconstruct states extends to the end of each trial, giving <span
+class="math inline">\(T-p+1\)</span> states per trial.</p>
+<p>For a single scalar trial <span
+class="math inline">\(x_1,\ldots,x_7\)</span> with <span
+class="math inline">\(p=f=2\)</span>, the four paired columns are
+completely explicit:</p>
+<p><span class="math display">\[
+P=\begin{bmatrix}
+x_2&amp;x_3&amp;x_4&amp;x_5\\x_1&amp;x_2&amp;x_3&amp;x_4
+\end{bmatrix},\qquad
+F=\begin{bmatrix}
+x_3&amp;x_4&amp;x_5&amp;x_6\\x_4&amp;x_5&amp;x_6&amp;x_7
+\end{bmatrix}.
+\]</span></p>
+<p>The extended past has six columns: append <span
+class="math inline">\((x_6,x_5)^\top\)</span> and <span
+class="math inline">\((x_7,x_6)^\top\)</span> to <span
+class="math inline">\(P\)</span>. Its final column estimates the state
+immediately <em>after</em> <span class="math inline">\(x_7\)</span>; it
+does not create a further observed innovation.</p>
+<p>Long horizons expose longer predictive memory but increase the
+covariance matrix dimensions to <span class="math inline">\(np\)</span>
+and <span class="math inline">\(nf\)</span>. If those matrices are rank
+deficient, the fit stops with a clear error; it does not silently add a
+ridge penalty.</p>
+<h3 id="3-find-the-predictive-directions-by-cca">3. Find the predictive
+directions by CCA</h3>
+<p>Let <span class="math inline">\(W_pW_p^\top=PP^\top/M_h\)</span> and
+<span class="math inline">\(W_fW_f^\top=FF^\top/M_h\)</span>. First
+regress future on past, <span
+class="math inline">\(B=FP^\dagger\)</span>, then compute</p>
+<p><span class="math display">\[
+W_f^{-1}BW_p=U\Sigma R^\top.
+\]</span></p>
+<p>Here <span class="math inline">\(P\in\mathbb R^{np\times
+M_h}\)</span> and <span class="math inline">\(F\in\mathbb R^{nf\times
+M_h}\)</span> are lag-block <strong>data matrices</strong>; they are
+unrelated to the transition <span class="math inline">\(F\)</span> in
+the known-model derivation. Thus <span class="math inline">\(B\in\mathbb
+R^{nf\times np}\)</span>, and <span
+class="math inline">\(W_p,W_f\)</span> are lower Cholesky factors of
+their lag-block covariances. The code obtains <span
+class="math inline">\(B\)</span> with a pivoted-QR least squares solve,
+forms <span class="math inline">\(W_f^{-1}BW_p\)</span> with a
+triangular solve, then applies SVD. For full-rank blocks, this is CCA of
+whitened past and future. If a Cholesky factor does not exist, the fit
+stops; it does not silently regularise the covariance.</p>
+<p>The singular values describe canonical correlations between the past
+and future blocks. Keeping <span class="math inline">\(r\)</span>
+directions gives estimated predictive states</p>
+<p><span class="math display">\[
+\widehat Z=\Sigma_r^{1/2}R_r^\top W_p^{-1}P_{\mathrm{extended}}.
+\]</span></p>
+<p>In the implementation this is computed as a right-side triangular
+solve for the <span class="math inline">\(r\times np\)</span>
+projection, followed by a matrix multiplication with the extended past.
+The output has <span class="math inline">\(r\)</span> state coordinates
+and <span class="math inline">\(T-p+1\)</span> time points per trial.
+The final state has no matching observation in the training array.</p>
+<p>This whitening belongs to the CCA calculation. It is distinct from
+the innovation whitening used later by the DD objectives.</p>
+<h3 id="4-choose-how-many-states-to-retain">4. Choose how many states to
+retain</h3>
+<p>Pass <code>r=</code> when the state dimension is specified. Otherwise
+we reproduce MVGC2's SVC calculation. Set <span
+class="math inline">\(r_{\max}=n\min(p,f)\)</span> and let <span
+class="math inline">\(\sigma_1,\ldots,\sigma_{r_{\max}}\)</span> be the
+CCA singular values. Its source constructs the scores</p>
+<p><span class="math display">\[
+s_j=-\log(1-\sigma_{j+1})+2nj\frac{\log M_h}{M_h},
+\quad j=1,\ldots,r_{\max},\quad\sigma_{r_{\max}+1}=0.
+\]</span></p>
+<p><strong>Parity detail:</strong> the reference maps the minimum score
+at one-based index <span class="math inline">\(j\)</span> to selected
+order <span class="math inline">\(r=j-1\)</span>. It uses unsquared
+singular values. We preserve both conventions, rather than silently
+changing the reference criterion. Consequently SVC selects among
+<code>0 .. rmax-1</code>; an explicitly supplied order may reach
+<code>rmax</code>. A selected zero is returned by
+<code>tsdata_to_ssmo</code>, but the fitting function raises an error
+because its downstream DD path requires a dynamic state. It does not
+replace zero with one.</p>
+<p><code>fit_ss_auto(X)</code> optionally obtains a VAR-AIC pilot order
+<span class="math inline">\(q\)</span> and sets <span
+class="math inline">\(p=f=2q\)</span>. This pilot chooses horizons only;
+CCA still fits the final state-space model directly from observations.
+Pass <code>pf=</code> to skip the pilot entirely.</p>
+<h3 id="5-fit-the-observation-and-state-equations">5. Fit the
+observation and state equations</h3>
+<p>Using aligned observations and current states, least squares
+gives</p>
+<p><span class="math display">\[
+\widehat C=X\widehat Z^\dagger,\qquad
+\widehat E=X-\widehat C\widehat Z,\qquad
+\widehat V=\frac{\widehat E\widehat E^\top}{N(T-p)-1}.
+\]</span></p>
+<p>Regressing next states on current states and innovations gives</p>
+<p><span class="math display">\[
+[\widehat A\;\widehat K]
+=\widehat Z_{\mathrm{next}}
+\begin{bmatrix}\widehat Z_{\mathrm{current}}\\\widehat
+E\end{bmatrix}^{\dagger}.
+\]</span></p>
+<p>This is MVGC2's regression estimate of <span
+class="math inline">\(K\)</span>. There is no additional Riccati solve
+in the fitting procedure. The Riccati solve enters later when evaluating
+temporal DD for a macroscopic projection. A general state-space model
+with separate process and observation noise covariances is a different
+parameterisation from the innovations model fitted here.</p>
+<p>For clarity, these are <em>training residuals</em> of the estimated
+predictive state. In an ideal correctly specified innovations model they
+are white and orthogonal to the past; finite data and a chosen horizon
+do not guarantee that property. The <span
+class="math inline">\(N(T-p)-1\)</span> denominator is the MVGC2
+sample-covariance convention reproduced by this code, not a
+degrees-of-freedom adjustment for all estimated regression
+coefficients.</p>
+<h3 id="6-assess-the-fit-before-interpreting-a-macro">6. Assess the fit
+before interpreting a macro</h3>
+<p><code>fit.diagnostics</code> reports the spectral radii of <span
+class="math inline">\(A\)</span> and <span
+class="math inline">\(A-KC\)</span>, and the smallest eigenvalue of
+<span class="math inline">\(V\)</span>. For a stable, minimum-phase
+innovations model, both radii should be below one and <span
+class="math inline">\(V\)</span> should be positive definite.
+Finite-sample CCA regressions do not enforce these properties. The
+fitter reports the model; <code>prepare_ss</code> rejects unstable state
+or predictor dynamics before DD analysis.</p>
+<p>Also examine innovations for remaining autocorrelation and compare
+prediction errors on held-out recordings. These diagnostics are part of
+assessing a fit; a small training error alone does not validate a state
+dimension or horizon. For filtering new observations, initialise a state
+and iterate <span class="math inline">\(\widehat
+E_t=(X_t^{\mathrm{raw}}-\mu)-C\widehat Z_t\)</span> and <span
+class="math inline">\(\widehat Z_{t+1}=A\widehat Z_t+K\widehat
+E_t\)</span>. The returned training states are CCA projections; they are
+not an independent held-out prediction test.</p>
+<h2 id="where-each-calculation-lives-in-the-code">Where each calculation
+lives in the code</h2>
+<p>The implementation is deliberately short enough to follow alongside
+the equations. Python's <code>_right_divide(Y, X)</code> solves <span
+class="math inline">\(Y\approx BX\)</span> by least squares, so it plays
+the role of <span class="math inline">\(YX^\dagger\)</span> in the
+displayed formulas.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Calculation</th>
+<th style="text-align: left;">Code location</th>
+<th style="text-align: left;">Exact operation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Check shape, horizons, finite values;
+centre each node</td>
+<td style="text-align: left;"><a
+href="src/multiscale/ss_fit.py"><code>ss_fit.py</code></a>,
+<code>_cca</code></td>
+<td style="text-align: left;"><code>(n,T)</code> becomes
+<code>(n,T,1)</code>; one mean per node is subtracted across samples and
+trials</td>
+</tr>
+<tr>
+<td style="text-align: left;">Create past/future blocks</td>
+<td style="text-align: left;"><code>ss_fit.py</code>,
+<code>_cca</code></td>
+<td style="text-align: left;">NumPy stacks node, lag, time, trial;
+Fortran-order reshape preserves MVGC2 column order</td>
+</tr>
+<tr>
+<td style="text-align: left;">CCA</td>
+<td style="text-align: left;"><code>ss_fit.py</code>,
+<code>_cca</code></td>
+<td style="text-align: left;">Cholesky of <span
+class="math inline">\(FF^\top/M_h\)</span> and <span
+class="math inline">\(PP^\top/M_h\)</span>; pivoted-QR regression;
+triangular solve; SVD</td>
+</tr>
+<tr>
+<td style="text-align: left;">SVC order</td>
+<td style="text-align: left;"><code>ss_fit.py</code>,
+<code>_cca</code></td>
+<td style="text-align: left;">MVGC2's unsquared singular values and its
+zero-based selected-order convention</td>
+</tr>
+<tr>
+<td style="text-align: left;">Estimate state trajectory</td>
+<td style="text-align: left;"><code>ss_fit.py</code>,
+<code>tsdata_to_ss</code></td>
+<td style="text-align: left;"><span
+class="math inline">\(\Sigma_r^{1/2}R_r^\top W_p^{-1}P_{\rm
+extended}\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;">Estimate <span
+class="math inline">\(C,E,V,A,K\)</span></td>
+<td style="text-align: left;"><code>ss_fit.py</code>,
+<code>tsdata_to_ss</code></td>
+<td style="text-align: left;">Two <code>_right_divide</code> calls,
+residual subtraction, and <span
+class="math inline">\(EE^\top/[N(T-p)-1]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;">Optional horizon pilot</td>
+<td style="text-align: left;"><code>ss_fit.py</code>,
+<code>fit_ss_auto</code></td>
+<td style="text-align: left;">VAR-AIC order <span
+class="math inline">\(q\)</span> sets <span
+class="math inline">\(p=f=2q\)</span>; the final fit is still CCA</td>
+</tr>
+<tr>
+<td style="text-align: left;">Known-model Riccati conversion</td>
+<td style="text-align: left;"><a
+href="src/multiscale/riccati.py"><code>riccati.py</code></a>,
+<code>mdare</code></td>
+<td style="text-align: left;">Solves for <span
+class="math inline">\(\Pi\)</span>, then computes <span
+class="math inline">\(G\)</span>, <span
+class="math inline">\(V\)</span>, <span class="math inline">\(K\)</span>
+by the equations above</td>
+</tr>
+<tr>
+<td style="text-align: left;">Innovation whitening and DD handoff</td>
+<td style="text-align: left;"><a
+href="src/multiscale/model.py"><code>model.py</code></a>,
+<code>prepare_ss</code>; <a
+href="src/multiscale/pipeline.py"><code>pipeline.py</code></a>,
+<code>run_full_dd_ss</code></td>
+<td style="text-align: left;">Transform <span
+class="math inline">\(V\)</span> to identity, then supply <span
+class="math inline">\((A,C_w,K_w)\)</span> to the existing DD
+routines</td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-the-dd-stage-solves-a-riccati-equation-again">Why the DD
+stage solves a Riccati equation again</h3>
+<p>The fitted model has innovation covariance <span
+class="math inline">\(V\)</span>, not necessarily identity. Let <span
+class="math inline">\(V=RR^\top\)</span> be its Cholesky factorisation
+and set <span class="math inline">\(X_t^w=R^{-1}X_t\)</span>, <span
+class="math inline">\(E_t^w=R^{-1}E_t\)</span>. Then</p>
+<p><span class="math display">\[
+X_t^w=C_wZ_t+E_t^w,\quad C_w=R^{-1}C,\qquad
+Z_{t+1}=AZ_t+K_wE_t^w,\quad K_w=KR,
+\quad\operatorname{cov}(E_t^w)=I.
+\]</span></p>
+<p>This changes observation coordinates, not the represented dynamics.
+For a candidate macro <span class="math inline">\(Y_t=L^\top
+X_t^w\)</span>, its observation matrix is <span
+class="math inline">\(L^\top C_w\)</span>. The <em>same</em> innovations
+<span class="math inline">\(E_t^w\)</span> drive both state and macro
+observation, so the original-model noise covariances for that projected
+system are</p>
+<p><span class="math display">\[
+Q_L=K_wK_w^\top,\qquad R_L=I_m,\qquad S_L=K_wL.
+\]</span></p>
+<p><code>iss2dd</code> passes exactly these matrices to
+<code>mdare</code> to obtain the macro's innovation covariance <span
+class="math inline">\(V_L\)</span> and its log-determinant. This Riccati
+solve answers how well the <em>macro's own past</em> predicts the macro.
+It is separate from estimating <span
+class="math inline">\((A,C,K,V)\)</span> from the raw microscopic
+data.</p>
+<h2 id="use-it-in-the-toolbox">Use it in the toolbox</h2>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> multiscale <span class="im">import</span> tsdata_to_ss, tsdata_to_ssmo, fit_ss_auto</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># X: your prepared nodes × samples [× trials] array</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>fit <span class="op">=</span> tsdata_to_ss(X, pf<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">10</span>), r<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(fit.A.shape, fit.C.shape, fit.K.shape, fit.V.shape)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(fit.diagnostics)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect the reference SVC selection, or use it to fit.</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>selection <span class="op">=</span> tsdata_to_ssmo(X, pf<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">10</span>))</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>fit_svc <span class="op">=</span> tsdata_to_ss(X, pf<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">10</span>))  <span class="co"># may reject selected order zero</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Optional VAR-AIC horizon pilot, followed by a direct CCA fit.</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>fit_auto <span class="op">=</span> fit_ss_auto(X, pmax<span class="op">=</span><span class="dv">20</span>)</span></code></pre></div>
+<p>The result contains <code>A</code>, <code>C</code>, <code>K</code>,
+<code>V</code>, <code>states</code>, <code>residuals</code>,
+<code>mean</code>, <code>order</code>, and <code>selection</code>.
+States have shape <code>(r, T-p+1, N)</code> and innovations
+<code>(n, T-p, N)</code>. Both retain a trials axis even for a single
+recording. The last estimated state is for the next time point beyond
+the recording; there is no matching observed innovation for that last
+state.</p>
+<p>For full-spectrum or temporal DD:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> multiscale <span class="im">import</span> random_initial_bases, run_full_dd_ss</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>starts <span class="op">=</span> random_initial_bases(X.shape[<span class="dv">0</span>], <span class="dv">2</span>, runs<span class="op">=</span><span class="dv">20</span>, seed<span class="op">=</span><span class="dv">7</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> run_full_dd_ss(fit, fs<span class="op">=</span><span class="dv">64</span>, fres<span class="op">=</span><span class="dv">128</span>, initial_bases<span class="op">=</span>starts,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                        final_method<span class="op">=</span><span class="st">&quot;both&quot;</span>, seed<span class="op">=</span><span class="dv">7</span>)</span></code></pre></div>
+<p>The adapter factors <span class="math inline">\(V=RR^\top\)</span>,
+transforms observations by <span class="math inline">\(R^{-1}\)</span>,
+and uses <span class="math inline">\(C_w=R^{-1}C\)</span>, <span
+class="math inline">\(K_w=KR\)</span> with unit innovation covariance.
+It then uses the existing DD optimisers. The returned
+<code>*_original_bases</code> pull macro projections back to the
+original observation coordinates. The existing
+<code>run_grid_parallel</code> and <code>run_time_changing_dd</code>
+convenience functions still fit or accept VAR models; this new direct-SS
+entry point is <code>run_full_dd_ss</code>.</p>
+<h2 id="reference-and-numerical-parity">Reference and numerical
+parity</h2>
+<p>The port follows MVGC2 at commit <a
+href="https://github.com/lcbarnett/MVGC2/tree/89be6b67f0f5e8697da333467ce41877d37e8421"><code>89be6b67f0f5e8697da333467ce41877d37e8421</code></a>,
+specifically <code>core/tsdata_to_ss.m</code>,
+<code>core/tsdata_to_ssmo.m</code>, and <code>stats/demean.m</code>. See
+<a href="NOTICE.md">NOTICE.md</a> for attribution and GPL licensing.</p>
+<p>The reference MATLAB sources were executed with GNU Octave on the
+same simulated innovations process for a single trial and three trials.
+Tests compare innovations, covariance, transfer functions, selected
+orders, and state parameters after accounting for the arbitrary
+state-coordinate transformation. Raw SVD signs are not a scientific
+difference between fits. See <a href="validation/SS_PARITY.md">the
+parity record</a>, the stored fixtures, and <a
+href="tests/test_ss_fit.py">the tests</a>. This establishes numerical
+parity for those cases, not universal equivalence on every
+ill-conditioned dataset.</p>
+<h2 id="keep-the-browser-edition-current">Keep the browser edition
+current</h2>
+<p>The repository also contains <a
+href="STATE_SPACE_FITTING.html"><code>STATE_SPACE_FITTING.html</code></a>
+beside this source file. After changing the Markdown, regenerate it from
+the repository root with</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/open-md</span> multiscale/STATE_SPACE_FITTING.md <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> multiscale/STATE_SPACE_FITTING.html <span class="at">--no-open</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">open</span> multiscale/STATE_SPACE_FITTING.html</span></code></pre></div>
+<p>The retained HTML keeps local links relative to this guide. Its IBM
+Plex Mono font, MathJax equations, and Mermaid schematic load from
+online services; the text and source equations remain readable without
+them.</p>
+</body>
+</html>

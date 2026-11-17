@@ -10,17 +10,19 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from typing import Optional
 from urllib.parse import unquote, urlsplit
 import webbrowser
 
 
 STYLE = """
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
   :root { color-scheme: light; }
   html { scroll-behavior: smooth; }
   body { max-width: 1120px; margin: 0 auto; padding: 4rem 5vw 7rem;
-         color: #202b32; background: #fafaf7; font: 18px/1.72 -apple-system,
-         BlinkMacSystemFont, "Segoe UI", sans-serif; }
+         color: #202b32; background: #fafaf7; font: 17px/1.75
+         "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
   h1, h2, h3 { color: #173e49; line-height: 1.24; letter-spacing: -.025em; }
   h1 { font-size: clamp(2.4rem, 5vw, 4.1rem); margin: 0 0 1.4rem;
        padding-bottom: 1.2rem; border-bottom: 5px solid #4c8e8b; }
@@ -39,7 +41,7 @@ STYLE = """
   tr:nth-child(even) { background: #f1f5f2; }
   pre { overflow-x: auto; padding: 1.2rem 1.4rem; border-radius: 8px;
         background: #eaf0ee; font-size: .88em; line-height: 1.5; }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  code { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   :not(pre) > code { background: #eaf0ee; padding: .12em .32em; border-radius: 3px; }
   blockquote { margin-left: 0; padding: .3rem 1.2rem; border-left: 4px solid #4c8e8b;
                background: #edf4f1; }
@@ -78,7 +80,7 @@ def localize_links(page: str, source: Path) -> str:
     return re.sub(r'\b(href|src)="([^"]+)"', replace, page)
 
 
-def render(source: Path) -> Path:
+def render(source: Path, output: Optional[Path] = None) -> Path:
     pandoc = shutil.which("pandoc")
     if not pandoc:
         raise RuntimeError("Pandoc is required. Install it with: brew install pandoc")
@@ -93,11 +95,17 @@ def render(source: Path) -> Path:
         lambda match: '<div class="mermaid">' + match.group(1) + '</div>',
         page, flags=re.DOTALL,
     )
-    page = localize_links(page, source)
-    preview_dir = Path(tempfile.gettempdir()) / "emergence-engine-markdown"
-    preview_dir.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(str(source).encode()).hexdigest()[:12]
-    output = preview_dir / f"{source.stem}-{digest}.html"
+    if output is None:
+        page = localize_links(page, source)
+        preview_dir = Path(tempfile.gettempdir()) / "emergence-engine-markdown"
+        preview_dir.mkdir(parents=True, exist_ok=True)
+        digest = hashlib.sha256(str(source).encode()).hexdigest()[:12]
+        output = preview_dir / f"{source.stem}-{digest}.html"
+    else:
+        output = output.expanduser().resolve()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        if output.parent != source.parent:
+            page = localize_links(page, source)
     output.write_text(page, encoding="utf-8")
     return output
 
@@ -106,12 +114,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("markdown", type=Path, help="Markdown file to view")
     parser.add_argument("--no-open", action="store_true", help="Render without opening a browser")
+    parser.add_argument("--output", type=Path, help="Keep the HTML at this path")
     args = parser.parse_args()
     source = args.markdown.expanduser().resolve()
     if not source.is_file():
         parser.error(f"File not found: {source}")
     try:
-        output = render(source)
+        output = render(source, args.output)
     except (RuntimeError, subprocess.CalledProcessError) as error:
         print(f"open-md: {error}", file=sys.stderr)
         return 1

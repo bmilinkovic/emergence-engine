@@ -19,12 +19,16 @@ each has a short notebook to help you begin.
 
 ![Two ways to study emergence: multiscale dynamics and joint information](assets/engine-map.svg)
 
-To read a Markdown guide with rendered equations and diagrams in your default
-browser, run this from the repository root (requires Pandoc):
+To read the retained state-space guide in your default browser, run this from
+the repository root:
 
 ```bash
-./scripts/open-md multiscale/STATE_SPACE_FITTING.md
+open multiscale/STATE_SPACE_FITTING.html
 ```
+
+To regenerate that HTML after editing the Markdown source, use
+`./scripts/open-md multiscale/STATE_SPACE_FITTING.md --output multiscale/STATE_SPACE_FITTING.html --no-open`
+(requires Pandoc).
 
 | **Multiscale** | **Synergy** |
 |:--|:--|
