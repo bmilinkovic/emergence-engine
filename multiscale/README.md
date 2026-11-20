@@ -90,7 +90,7 @@ results = run_grid_parallel(
     A, V, fs=128, fres=128,
     dimensions=(1, 2),
     bands={"slow": (1, 4), "fast": (8, 20)},
-    runs=100, workers=4, seed=42,
+    runs=100, workers=4, parallel_axis="starts", seed=42,
 )
 print(results[(2, "slow")]["final"].values[0])
 ```
@@ -101,6 +101,12 @@ lowest DD upward. The associated bases are in decorrelated coordinates;
 `final_original_bases` maps them back to the original signals. Increase the
 number of restarts and iteration limits for a serious analysis. Dimensions
 must satisfy `1 <= dimension < number of nodes`.
+With `parallel_axis="starts"`, one dimension × band block runs at a time and
+its random starts are distributed across the worker processes. This is useful
+when each start is expensive. The default `parallel_axis="blocks"` instead
+runs independent dimension × band blocks concurrently. Both modes use the
+same deterministic starts and return the same results up to floating-point
+rounding.
 
 ## Time-domain DD
 

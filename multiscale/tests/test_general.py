@@ -1,6 +1,7 @@
 """Small synthetic checks for the public, data-independent workflow."""
 
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 
@@ -8,9 +9,29 @@ from multiscale import (fit_var_auto, run_grid_parallel, run_time_changing_dd,
                         minimum_dd_by_window)
 from multiscale.model import (iss2cak, prepare_var, ss2trfun, var_to_cak,
                               var_to_ss, var_to_trfun)
+from multiscale.objective import cak2ddx, cak2ddxgrad, prepare_proxy
+from multiscale.optimise import opt_gd_ddx_mruns, random_initial_bases
 
 
 class CompanionCalculationTests(unittest.TestCase):
+    def test_cached_proxy_matches_original_matrix_sums(self):
+        rng = np.random.default_rng(29)
+        cak = rng.normal(scale=.03, size=(5, 5, 15))
+        l = np.linalg.svd(rng.normal(size=(5, 2)), full_matrices=False)[0]
+        prepared = prepare_proxy(cak)
+        self.assertAlmostEqual(cak2ddx(l, cak, prepared), cak2ddx(l, cak), places=12)
+        old_grad, old_norm = cak2ddxgrad(l, cak)
+        new_grad, new_norm = cak2ddxgrad(l, cak, prepared)
+        np.testing.assert_allclose(new_grad, old_grad, rtol=0, atol=1e-12)
+        self.assertAlmostEqual(new_norm, old_norm, places=12)
+        starts = random_initial_bases(5, 2, 3, seed=7)
+        with patch("multiscale.optimise.prepare_proxy", return_value=None):
+            original = opt_gd_ddx_mruns(cak, starts, niters=12)
+        cached = opt_gd_ddx_mruns(cak, starts, niters=12)
+        np.testing.assert_allclose(cached.values, original.values, rtol=0, atol=1e-12)
+        np.testing.assert_allclose(cached.bases, original.bases, rtol=0, atol=1e-12)
+        np.testing.assert_array_equal(cached.iterations, original.iterations)
+
     def test_block_elimination_matches_dense_companion(self):
         rng = np.random.default_rng(91)
         a = rng.normal(scale=0.025, size=(4, 4, 3))
@@ -38,6 +59,28 @@ class CompanionCalculationTests(unittest.TestCase):
         np.testing.assert_allclose(selected[(1, "high")]["final"].values,
                                    full[(1, "high")]["final"].values,
                                    rtol=0, atol=0)
+
+    def test_parallel_starts_match_serial_runs_and_report_progress(self):
+        a = np.zeros((3, 3, 1))
+        a[:, :, 0] = np.array([[.5, .1, 0], [0, .4, .1], [0, 0, .3]])
+        kwargs = dict(fs=64, fres=16, dimensions=(1,),
+                      bands={"low": (2, 8), "high": (10, 20)},
+                      runs=4, seed=17, pre_iters=6, final_iters=6)
+        serial = run_grid_parallel(a, np.eye(3), workers=1, **kwargs)
+        updates = []
+        parallel = run_grid_parallel(
+            a, np.eye(3), workers=2, parallel_axis="starts",
+            start_progress=lambda *args: updates.append(args), **kwargs)
+        for pair in serial:
+            for stage in ("pre", "final"):
+                np.testing.assert_array_equal(parallel[pair][stage].values,
+                                              serial[pair][stage].values)
+                np.testing.assert_array_equal(parallel[pair][stage].bases,
+                                              serial[pair][stage].bases)
+            np.testing.assert_array_equal(parallel[pair]["representatives"],
+                                          serial[pair]["representatives"])
+        self.assertIn((1, "low", "proxy", 4, 4), updates)
+        self.assertTrue(any(phase == "spectral" for _, _, phase, _, _ in updates))
 
 
 class VARFittingTests(unittest.TestCase):
